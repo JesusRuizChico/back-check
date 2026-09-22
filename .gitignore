@@ -31,3 +31,16 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Variables y secretos locales
+.env
+.env.*
+!.env.example
+application-local.properties
+application-secret.properties
+application-secrets.properties
+src/main/resources/application-local.properties
+src/main/resources/application-secret.properties
+src/main/resources/application-secrets.properties
+*service-account*.json
+firebase-adminsdk*.json
