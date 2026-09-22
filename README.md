@@ -1,95 +1,68 @@
-# Backend HabitaCheck
+# Cómo consumir el login desde Flutter
 
-## Arranque
+El backend corre en el puerto `8080`.
 
-Requiere Java 17, PostgreSQL y las variables `DB_URL`, `DB_USER` y `DB_PASSWORD`
-configuradas en el entorno de ejecución del IDE o de la terminal. Por ejemplo,
-`DB_URL=jdbc:postgresql://localhost:5432/habitacheck_db`.
-
-Desde la carpeta backend:
-
-```powershell
-.\mvnw.cmd spring-boot:run
+```text
+http://172.20.10.2:8080
 ```
 
-Solo se conservan las migraciones V1 y V2 actuales, sin cambios en su contenido.
-Flyway las aplica a una base vacía y Hibernate valida las entidades. Si la base
-conserva el historial anterior de V1/V2/V3, puede haber diferencias de checksum o
-versiones. No se ha reparado ni borrado ese historial: se debe reconciliar por
-separado antes de usar esa base. No desactivar la validación para ocultar el problema.
+Para iniciar sesión tienen que hacer dos peticiones.
 
-## Cómo probar los endpoints
+## 1. Pedir el token
 
-Usar un cliente que conserve las cookies, por ejemplo Postman. La autenticación
-usa sesión HTTP con JSESSIONID, no JWT ni tablas adicionales. No se usa Firebase.
+Primero hagan una petición `GET` a:
 
-1. `GET /api/csrf`: guardar las cookies y leer `token` y `headerName` del JSON.
-2. En cada POST enviar el token en la cabecera `X-XSRF-TOKEN` y las cookies.
-3. `POST /api/auth/registro`, con `Content-Type: application/json`:
+```text
+http://172.20.10.2:8080/api/csrf
+```
+
+La respuesta les dará un token parecido a este:
 
 ```json
 {
-  "nombre": "Ana Pérez",
-  "correo": "ana@example.com",
-  "contrasena": "MiClaveDePrueba123!",
-  "telefono": "4271234567",
-  "rolSolicitado": "arrendatario"
+  "token": "TOKEN_RECIBIDO",
+  "headerName": "X-XSRF-TOKEN"
 }
 ```
 
-Devuelve 201 y los datos públicos; registrarse no inicia sesión. Se conservan los
-roles públicos de tu servicio: arrendatario, arrendador y proveedor. El registro de
-especialidades del proveedor no forma parte de este flujo todavía. Administrador
-no se permite en el registro público.
+Guarden el valor de ese token, porque lo necesitan para hacer el login.
+También deben conservar las cookies que reciban en esta petición.
 
-La contraseña de registro exige un mínimo de 6 caracteres, acorde al frontend
-actual, y un máximo de 72 bytes UTF-8 por usar BCrypt. El teléfono es opcional.
+## 2. Hacer login
 
-4. `POST /api/auth/login`:
+Después hagan una petición `POST` a:
+
+```text
+http://172.20.10.2:8080/api/auth/login
+```
+
+En el body manden las credenciales en formato JSON:
 
 ```json
-{"correo":"ana@example.com","contrasena":"MiClaveDePrueba123!"}
+{
+  "correo": "ejemplo@ejemplo.mx",
+  "contrasena": "Ejempo123"
+}
 ```
 
-Devuelve 200 y el perfil; conservar la cookie JSESSIONID. El backend actualiza
-ultimo_acceso y renueva el identificador de sesión cuando ya existía una sesión.
+También deben mandar este header:
 
-5. Volver a llamar `GET /api/csrf`: el token anterior se invalida en el login.
-6. `GET /api/perfil`: devuelve el perfil de quien inició sesión, sin aceptar un ID
-   de usuario enviado por el cliente. No permite editar el perfil todavía.
-7. `POST /api/auth/logout`, con CSRF y cookies actuales: devuelve 204, invalida
-   la sesión y elimina la cookie. El perfil vuelve a responder 401.
-8. Obtener nuevamente CSRF antes de otra operación POST tras cerrar sesión.
-
-Errores principales: 400 datos inválidos, 401 credenciales inválidas o sesión
-ausente, 403 CSRF ausente/inválido y 409 conflicto de datos/correo existente.
-
-Las sesiones están en memoria: se pierden al reiniciar el servidor. El estado y
-roles se cargan en la autenticación; el perfil también verifica que la cuenta esté
-activa. No se añadió bloqueo por intentos fallidos ni tablas o campos para ello.
-Antes de integrar Flutter Web se deben definir sus orígenes CORS; para desplegar
-deben configurarse HTTPS y cookies adecuadas al entorno.
-
-## Cambios realizados
-
-- Corregidos import de RegistroRequest y tipos de autoridades.
-- Entidad Rol alineada con el VARCHAR(400) y TEXT de tu V2.
-- Validaciones de DTOs y respuestas de error coherentes con tus excepciones.
-- Perfil con transacción de lectura y actualización del último acceso en login.
-- UsuarioPrincipal elimina el hash de la identidad tras autenticar.
-- SecurityConfig comparte la estrategia de sesión/CSRF con el login JSON.
-- Nuevos AuthController y PerfilController para exponer los servicios existentes.
-
-## Pruebas
-
-Las pruebas usan una base PostgreSQL exclusiva para tests, distinta de desarrollo.
-Configurar `TEST_DB_URL`, `TEST_DB_USER` y, si corresponde, `TEST_DB_PASSWORD`.
-El perfil test aplica V1 y V2 mediante Flyway y conserva ddl-auto=validate.
-Las pruebas insertan usuarios aleatorios y los conservan solo en esa base de prueba.
-
-```powershell
-.\mvnw.cmd test
+```text
+X-XSRF-TOKEN: TOKEN_RECIBIDO
 ```
 
-AuthIntegrationTests comprueba peticiones HTTP reales, CSRF, validaciones,
-duplicados, hash de contraseña, sesión persistente, rotación de sesión y cierre.
+Reemplacen `TOKEN_RECIBIDO` por el token que obtuvieron en el primer paso.
+
+La petición debe conservar las cookies. La más importante es `JSESSIONID`,
+porque esa cookie mantiene la sesión iniciada.
+
+No se devuelve un JWT. La sesión se mantiene con la cookie `JSESSIONID`, por
+eso Flutter debe guardarla y enviarla en las siguientes peticiones.
+
+## Dirección del backend
+
+Si Flutter corre en la misma computadora, pueden usar:
+
+```text
+http://172.20.10.2:8080
+```
