@@ -34,7 +34,11 @@ public class Usuario{
     @Column(name = "ultimo_acceso")
     private OffsetDateTime ultimoAcceso;
 
+    @Column(name = "intentos_fallidos", nullable = false)
+    private Integer intentosFallidos = 0;
 
+    @Column(name = "bloqueado_hasta")
+    private OffsetDateTime bloqueadoHasta;
     public Usuario (){
 
     }
@@ -119,5 +123,21 @@ public class Usuario{
 
     public void setUltimoAcceso(OffsetDateTime ultimoAcceso) {
         this.ultimoAcceso = ultimoAcceso;
+    }
+
+    public Integer getIntentosFallidos() {
+        return intentosFallidos;
+    }
+
+    public void setIntentosFallidos(Integer intentosFallidos) {
+        this.intentosFallidos = intentosFallidos;
+    }
+
+    public OffsetDateTime getBloqueadoHasta() {
+        return bloqueadoHasta;
+    }
+
+    public void setBloqueadoHasta(OffsetDateTime bloqueadoHasta) {
+        this.bloqueadoHasta = bloqueadoHasta;
     }
 }

@@ -1,6 +1,7 @@
 package com.equipo404.arrendamiento.exception;
 
 import com.equipo404.arrendamiento.dto.response.ErrorResponse;
+import com.equipo404.arrendamiento.exception.CuentaBloqueadaException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -74,7 +75,11 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> manejarAutenticacion() {
+    public ResponseEntity<ErrorResponse> manejarAutenticacion(org.springframework.security.core.AuthenticationException exception) {
+        if (exception instanceof CuentaBloqueadaException) {
+            return ResponseEntity.status(HttpStatus.LOCKED).body(
+                    new ErrorResponse("CUENTA_BLOQUEADA", exception.getMessage()));
+        }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 new ErrorResponse("CREDENCIALES_INVALIDAS", "Correo o contraseña incorrectos"));
     }
