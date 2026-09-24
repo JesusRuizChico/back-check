@@ -21,6 +21,7 @@ public class UsuarioMapper {
                 usuario.getIdUsuario(),
                 usuario.getNombre(),
                 usuario.getCorreo(),
+                usuario.getCorreoAlterno(),
                 usuario.getTelefono(),
                 usuario.getFotoPerfil(),
                 rolesActivos

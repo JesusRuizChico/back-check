@@ -1,13 +1,14 @@
 package com.equipo404.arrendamiento.entity;
+
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "usuarios")
-public class Usuario{
+public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name= "id_usuario")
+    @Column(name = "id_usuario")
     private Long idUsuario;
 
     @Column(name = "nombre", nullable = false, length = 150)
@@ -15,6 +16,9 @@ public class Usuario{
 
     @Column(name = "correo", nullable = false, unique = true, length = 254)
     private String correo;
+
+    @Column(name = "correo_alterno", nullable = true, unique = true, length = 254)
+    private String correoAlterno;
 
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
@@ -39,21 +43,22 @@ public class Usuario{
 
     @Column(name = "bloqueado_hasta")
     private OffsetDateTime bloqueadoHasta;
-    public Usuario (){
+
+    public Usuario() {
 
     }
 
     @PrePersist
-    protected void prePersist(){
-        if (fechaRegistro == null ){
+    protected void prePersist() {
+        if (fechaRegistro == null) {
             fechaRegistro = OffsetDateTime.now();
         }
-        if (estado == null){
+        if (estado == null) {
             estado = "activo";
         }
     }
 
-    public Long getIdUsuario(){
+    public Long getIdUsuario() {
         return idUsuario;
     }
 
@@ -75,6 +80,14 @@ public class Usuario{
 
     public void setCorreo(String correo) {
         this.correo = correo;
+    }
+
+    public String getCorreoAlterno() {
+        return correoAlterno;
+    }
+
+    public void setCorreoAlterno(String correoAlterno) {
+        this.correoAlterno = correoAlterno;
     }
 
     public String getPasswordHash() {

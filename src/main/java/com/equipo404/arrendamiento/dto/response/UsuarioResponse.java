@@ -7,6 +7,7 @@ public class UsuarioResponse {
     private Long id;
     private String nombre;
     private String correo;
+    private String correoAlterno;
     private String telefono;
     private String fotoPerfil;
     private List<String> rolesActivos;
@@ -18,6 +19,7 @@ public class UsuarioResponse {
             Long id,
             String nombre,
             String correo,
+            String correoAlterno,
             String telefono,
             String fotoPerfil,
             List<String> rolesActivos) {
@@ -25,6 +27,7 @@ public class UsuarioResponse {
         this.id = id;
         this.nombre = nombre;
         this.correo = correo;
+        this.correoAlterno = correoAlterno;
         this.telefono = telefono;
         this.fotoPerfil = fotoPerfil;
         this.rolesActivos = rolesActivos;
@@ -52,6 +55,14 @@ public class UsuarioResponse {
 
     public void setCorreo(String correo) {
         this.correo = correo;
+    }
+
+    public String getCorreoAlterno() {
+        return correoAlterno;
+    }
+
+    public void setCorreoAlterno(String correoAlterno) {
+        this.correoAlterno = correoAlterno;
     }
 
     public String getTelefono() {

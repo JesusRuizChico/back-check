@@ -1,6 +1,7 @@
 package com.equipo404.arrendamiento.service;
 
 import com.equipo404.arrendamiento.dto.response.UsuarioResponse;
+import com.equipo404.arrendamiento.dto.request.ActualizarContactoRequest;
 import com.equipo404.arrendamiento.entity.Usuario;
 import com.equipo404.arrendamiento.entity.UsuarioRol;
 import com.equipo404.arrendamiento.mapper.UsuarioMapper;
@@ -32,21 +33,42 @@ public class PerfilService {
     public UsuarioResponse obtenerMiPerfil(Long idUsuario) {
 
         Usuario usuario = usuarioRepository.findById(idUsuario)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Usuario no encontrado"
-                        )
-                );
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
         if (!"activo".equals(usuario.getEstado())) {
             throw new DisabledException("La cuenta no está activa");
         }
 
-        List<UsuarioRol> roles =
-                usuarioRolRepository.findByUsuario(usuario);
+        List<UsuarioRol> roles = usuarioRolRepository.findByUsuario(usuario);
 
         return UsuarioMapper.toResponse(usuario, roles);
     }
+
+    @Transactional
+    public UsuarioResponse actualizarContacto(Long idUsuario, ActualizarContactoRequest request) {
+
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        if (!"activo".equals(usuario.getEstado())) {
+            throw new DisabledException("La cuenta no está activa");
+        }
+
+        if (request.getTelefono() != null) {
+            usuario.setTelefono(request.getTelefono());
+        }
+
+        if (request.getCorreoAlterno() != null) {
+            usuario.setCorreoAlterno(request.getCorreoAlterno());
+        }
+
+        usuario = usuarioRepository.save(usuario);
+
+        List<UsuarioRol> roles = usuarioRolRepository.findByUsuario(usuario);
+
+        return UsuarioMapper.toResponse(usuario, roles);
+    }
+
     @Transactional
     public void registrarAcceso(Long idUsuario) {
         Usuario usuario = usuarioRepository.findById(idUsuario)
@@ -54,3 +76,4 @@ public class PerfilService {
         usuario.setUltimoAcceso(OffsetDateTime.now());
     }
 }
+
