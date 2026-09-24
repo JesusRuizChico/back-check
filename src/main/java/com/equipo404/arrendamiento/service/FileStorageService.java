@@ -47,4 +47,49 @@ public class FileStorageService {
             throw new RuntimeException("Could not store file " + targetFileName + ". Please try again!", ex);
         }
     }
+
+    public void validateImageFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Debe seleccionar un archivo de imagen válido.");
+        }
+
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException("El tamaño de la imagen no debe exceder los 5 MB.");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || (!contentType.equalsIgnoreCase("image/jpeg")
+                && !contentType.equalsIgnoreCase("image/png")
+                && !contentType.equalsIgnoreCase("image/webp")
+                && !contentType.equalsIgnoreCase("image/jpg"))) {
+            throw new IllegalArgumentException("Formato de archivo no soportado. Los formatos permitidos son: JPG, PNG y WEBP.");
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename != null) {
+            String lower = originalFilename.toLowerCase();
+            if (!lower.endsWith(".jpg") && !lower.endsWith(".jpeg") && !lower.endsWith(".png") && !lower.endsWith(".webp")) {
+                throw new IllegalArgumentException("Extensión de archivo no soportada. Extensiones permitidas: .jpg, .jpeg, .png, .webp");
+            }
+        }
+    }
+
+    public String storeImage(MultipartFile file) {
+        validateImageFile(file);
+        return storeFile(file);
+    }
+
+    public void deleteFile(String fileName) {
+        if (fileName == null || fileName.isBlank() || fileName.contains("..")) {
+            return;
+        }
+        try {
+            Path targetLocation = this.fileStorageLocation.resolve(fileName).normalize();
+            if (targetLocation.startsWith(this.fileStorageLocation)) {
+                Files.deleteIfExists(targetLocation);
+            }
+        } catch (IOException ignored) {
+            // Silenciosamente ignorar errores al eliminar archivos en el sistema local
+        }
+    }
 }
