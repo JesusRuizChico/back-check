@@ -3,7 +3,8 @@ package com.equipo404.arrendamiento.service;
 import com.equipo404.arrendamiento.dto.request.PropiedadRequest;
 import com.equipo404.arrendamiento.dto.response.PropiedadResponse;
 import com.equipo404.arrendamiento.entity.Propiedad;
-import com.equipo404.arrendamiento.entity.PropiedadImagen;
+import com.equipo404.arrendamiento.entity.PropiedadFotografia;
+import com.equipo404.arrendamiento.entity.PropiedadServicio;
 import com.equipo404.arrendamiento.entity.Usuario;
 import com.equipo404.arrendamiento.repository.PropiedadRepository;
 import com.equipo404.arrendamiento.repository.UsuarioRepository;
@@ -31,24 +32,33 @@ public class PropiedadService {
     }
 
     @Transactional
-    public PropiedadResponse publicarPropiedad(Long idArrendador, PropiedadRequest request, List<MultipartFile> imagenes) {
-        Usuario arrendador = usuarioRepository.findById(idArrendador)
-                .orElseThrow(() -> new IllegalArgumentException("Arrendador no encontrado"));
+    public PropiedadResponse publicarPropiedad(Long idPropietario, PropiedadRequest request, List<MultipartFile> imagenes) {
+        Usuario propietario = usuarioRepository.findById(idPropietario)
+                .orElseThrow(() -> new IllegalArgumentException("Propietario no encontrado"));
 
         if (imagenes != null && imagenes.size() > 5) {
             throw new IllegalArgumentException("No se pueden subir más de 5 imágenes");
         }
 
         Propiedad propiedad = new Propiedad();
-        propiedad.setArrendador(arrendador);
+        propiedad.setPropietario(propietario);
         propiedad.setTitulo(request.getTitulo());
         propiedad.setDescripcion(request.getDescripcion());
-        propiedad.setPrecio(request.getPrecio());
-        propiedad.setUbicacion(request.getUbicacion());
-        propiedad.setHabitaciones(request.getHabitaciones() != null ? request.getHabitaciones() : 1);
-        propiedad.setServicios(request.getServicios());
+        propiedad.setPrecioMensual(request.getPrecioMensual());
+        propiedad.setCalle(request.getCalle());
+        propiedad.setNumeroExterior(request.getNumeroExterior());
+        propiedad.setNumeroInterior(request.getNumeroInterior());
+        propiedad.setColonia(request.getColonia());
+        propiedad.setMunicipio(request.getMunicipio());
+        propiedad.setEstadoUbicacion(request.getEstadoUbicacion());
+        propiedad.setCodigoPostal(request.getCodigoPostal());
+        propiedad.setLatitud(request.getLatitud());
+        propiedad.setLongitud(request.getLongitud());
+        
+        // TODO: Handle request.getServiciosIds() mapping to PropiedadServicio if needed
         
         if (imagenes != null) {
+            short orden = 1;
             for (MultipartFile file : imagenes) {
                 if (!file.isEmpty()) {
                     String fileName = fileStorageService.storeFile(file);
@@ -58,7 +68,7 @@ public class PropiedadService {
                             .path(fileName)
                             .toUriString();
                     
-                    propiedad.addImagen(fileDownloadUri);
+                    propiedad.addFotografia(fileDownloadUri, orden++);
                 }
             }
         }
@@ -68,8 +78,8 @@ public class PropiedadService {
     }
 
     @Transactional(readOnly = true)
-    public List<PropiedadResponse> obtenerMisPropiedades(Long idArrendador) {
-        List<Propiedad> propiedades = propiedadRepository.findByArrendador_IdUsuario(idArrendador);
+    public List<PropiedadResponse> obtenerMisPropiedades(Long idPropietario) {
+        List<Propiedad> propiedades = propiedadRepository.findByPropietario_IdUsuario(idPropietario);
         return propiedades.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -80,17 +90,29 @@ public class PropiedadService {
         response.setIdPropiedad(propiedad.getIdPropiedad());
         response.setTitulo(propiedad.getTitulo());
         response.setDescripcion(propiedad.getDescripcion());
-        response.setPrecio(propiedad.getPrecio());
-        response.setUbicacion(propiedad.getUbicacion());
-        response.setHabitaciones(propiedad.getHabitaciones());
-        response.setServicios(propiedad.getServicios());
+        response.setPrecioMensual(propiedad.getPrecioMensual());
+        response.setCalle(propiedad.getCalle());
+        response.setNumeroExterior(propiedad.getNumeroExterior());
+        response.setNumeroInterior(propiedad.getNumeroInterior());
+        response.setColonia(propiedad.getColonia());
+        response.setMunicipio(propiedad.getMunicipio());
+        response.setEstadoUbicacion(propiedad.getEstadoUbicacion());
+        response.setCodigoPostal(propiedad.getCodigoPostal());
+        response.setLatitud(propiedad.getLatitud());
+        response.setLongitud(propiedad.getLongitud());
         response.setEstado(propiedad.getEstado());
+        response.setVerificada(propiedad.getVerificada());
         response.setFechaPublicacion(propiedad.getFechaPublicacion());
         
-        List<String> imageUrls = propiedad.getImagenes().stream()
-                .map(PropiedadImagen::getUrlImagen)
+        List<String> imageUrls = propiedad.getFotografias().stream()
+                .map(PropiedadFotografia::getUrl)
                 .collect(Collectors.toList());
         response.setImagenes(imageUrls);
+        
+        List<String> servicios = propiedad.getServicios().stream()
+                .map(ps -> ps.getServicio().getNombre())
+                .collect(Collectors.toList());
+        response.setServicios(servicios);
         
         return response;
     }

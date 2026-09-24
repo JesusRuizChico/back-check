@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface PropiedadRepository extends JpaRepository<Propiedad, Long> {
-    List<Propiedad> findByArrendador_IdUsuario(Long idUsuario);
+    List<Propiedad> findByPropietario_IdUsuario(Long idUsuario);
 }
