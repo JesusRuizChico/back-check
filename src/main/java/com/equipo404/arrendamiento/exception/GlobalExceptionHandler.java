@@ -101,4 +101,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 new ErrorResponse("CONFLICTO", "Los datos entran en conflicto con un registro existente"));
     }
+
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> manejarTamanioMaximoExcedido() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ErrorResponse("TAMANIO_EXCEDIDO", "El archivo excede el tamaño máximo permitido de 5 MB."));
+    }
 }
