@@ -71,10 +71,15 @@ public class PerfilService {
         String fotoAnterior = usuario.getFotoPerfil();
         String nombreArchivo = fileStorageService.storeImage(archivo);
 
-        String urlDescarga = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/uploads/")
-                .path(nombreArchivo)
-                .toUriString();
+        String urlDescarga;
+        try {
+            urlDescarga = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/uploads/")
+                    .path(nombreArchivo)
+                    .toUriString();
+        } catch (IllegalStateException ex) {
+            urlDescarga = "/uploads/" + nombreArchivo;
+        }
 
         usuario.setFotoPerfil(urlDescarga);
         usuarioRepository.save(usuario);
