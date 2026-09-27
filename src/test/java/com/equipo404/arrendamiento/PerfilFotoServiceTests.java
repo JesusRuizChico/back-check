@@ -60,7 +60,8 @@ class PerfilFotoServiceTests {
         );
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioPrueba));
-        when(fileStorageService.storeImage(archivoImagen)).thenReturn("uuid-nueva-foto.png");
+        when(fileStorageService.storeImage(archivoImagen, "perfiles"))
+                .thenReturn("https://firebasestorage.googleapis.com/v0/b/habitacheck-3f82b.firebasestorage.app/o/perfiles%2Fuuid-nueva-foto.png?alt=media&token=test");
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(usuarioRolRepository.findByUsuario(any(Usuario.class))).thenReturn(Collections.emptyList());
 
@@ -69,7 +70,7 @@ class PerfilFotoServiceTests {
         assertNotNull(response);
         assertNotNull(response.getFotoPerfil());
         assertTrue(response.getFotoPerfil().contains("uuid-nueva-foto.png"));
-        verify(fileStorageService).deleteFile("foto-antigua.jpg");
+        verify(fileStorageService).deleteFile("http://localhost:8080/uploads/foto-antigua.jpg");
         verify(usuarioRepository).save(usuarioPrueba);
     }
 
@@ -85,7 +86,7 @@ class PerfilFotoServiceTests {
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioPrueba));
         doThrow(new IllegalArgumentException("Formato de archivo no soportado. Los formatos permitidos son: JPG, PNG y WEBP."))
-                .when(fileStorageService).storeImage(archivoInvalido);
+                .when(fileStorageService).storeImage(archivoInvalido, "perfiles");
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 perfilService.actualizarFotoPerfil(1L, archivoInvalido)
@@ -108,7 +109,7 @@ class PerfilFotoServiceTests {
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioPrueba));
         doThrow(new IllegalArgumentException("El tamaño de la imagen no debe exceder los 5 MB."))
-                .when(fileStorageService).storeImage(archivoPesado);
+                .when(fileStorageService).storeImage(archivoPesado, "perfiles");
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 perfilService.actualizarFotoPerfil(1L, archivoPesado)
@@ -130,7 +131,7 @@ class PerfilFotoServiceTests {
 
         assertNotNull(response);
         assertNull(response.getFotoPerfil(), "La foto de perfil debe ser null para que se muestre el avatar predeterminado");
-        verify(fileStorageService).deleteFile("foto-antigua.jpg");
+        verify(fileStorageService).deleteFile("http://localhost:8080/uploads/foto-antigua.jpg");
         verify(usuarioRepository).save(usuarioPrueba);
     }
 }

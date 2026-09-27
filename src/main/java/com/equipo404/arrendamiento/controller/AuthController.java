@@ -19,6 +19,7 @@ import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Locale;
 import java.time.OffsetDateTime;
 import com.equipo404.arrendamiento.exception.CuentaBloqueadaException;
 import com.equipo404.arrendamiento.entity.Usuario;
@@ -62,7 +63,8 @@ public class AuthController {
     public UsuarioResponse login(@Valid @RequestBody LoginRequest login,
                                  HttpServletRequest request, HttpServletResponse response) {
         
-        Usuario usuarioEntity = usuarioRepository.findByCorreo(login.getCorreo()).orElse(null);
+        String correoNormalizado = login.getCorreo().trim().toLowerCase(Locale.ROOT);
+        Usuario usuarioEntity = usuarioRepository.findByCorreoIgnoreCase(correoNormalizado).orElse(null);
         if (usuarioEntity != null && usuarioEntity.getBloqueadoHasta() != null) {
             if (usuarioEntity.getBloqueadoHasta().isAfter(OffsetDateTime.now())) {
                 throw new CuentaBloqueadaException("Cuenta bloqueada. Intente de nuevo más tarde.");

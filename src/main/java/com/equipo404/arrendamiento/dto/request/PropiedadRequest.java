@@ -2,42 +2,66 @@ package com.equipo404.arrendamiento.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.List;
 
 public class PropiedadRequest {
     @NotBlank(message = "El título es obligatorio")
+    @Size(max = 150)
     private String titulo;
-    
+
+    @NotBlank(message = "La descripción es obligatoria")
     private String descripcion;
     
     @NotNull(message = "El precio mensual es obligatorio")
+    @Positive
+    @Digits(integer = 10, fraction = 2)
     private BigDecimal precioMensual;
     
     @NotBlank(message = "La calle es obligatoria")
+    @Size(max = 150)
     private String calle;
     
     @NotBlank(message = "El número exterior es obligatorio")
+    @Size(max = 20)
     private String numeroExterior;
     
+    @Size(max = 20)
     private String numeroInterior;
     
     @NotBlank(message = "La colonia es obligatoria")
+    @Size(max = 100)
     private String colonia;
     
     @NotBlank(message = "El municipio es obligatorio")
+    @Size(max = 100)
     private String municipio;
     
     @NotBlank(message = "El estado (ubicación) es obligatorio")
+    @Size(max = 100)
     private String estadoUbicacion;
     
     @NotBlank(message = "El código postal es obligatorio")
+    @Pattern(regexp = "^[0-9]{5}$")
     private String codigoPostal;
     
+    @DecimalMin("-90")
+    @DecimalMax("90")
+    @Digits(integer = 3, fraction = 6)
     private BigDecimal latitud;
+
+    @DecimalMin("-180")
+    @DecimalMax("180")
+    @Digits(integer = 3, fraction = 6)
     private BigDecimal longitud;
     
-    private List<Long> serviciosIds;
+    private List<@NotNull @Positive Long> serviciosIds;
 
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }

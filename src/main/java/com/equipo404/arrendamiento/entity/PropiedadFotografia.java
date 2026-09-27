@@ -1,6 +1,7 @@
 package com.equipo404.arrendamiento.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -15,7 +16,8 @@ public class PropiedadFotografia {
     @Column(name = "url", nullable = false, columnDefinition = "TEXT")
     private String url;
 
-    @Column(name = "orden")
+    @Min(1)
+    @Column(name = "orden", nullable = false)
     private Short orden;
 
     @Column(name = "fecha_carga", nullable = false, updatable = false)

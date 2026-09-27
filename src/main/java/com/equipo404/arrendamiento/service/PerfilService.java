@@ -10,8 +10,9 @@ import com.equipo404.arrendamiento.repository.UsuarioRolRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.time.OffsetDateTime;
 
 import java.util.List;
@@ -69,25 +70,19 @@ public class PerfilService {
         }
 
         String fotoAnterior = usuario.getFotoPerfil();
-        String nombreArchivo = fileStorageService.storeImage(archivo);
-
-        String urlDescarga;
+        String urlNueva = fileStorageService.storeImage(archivo, "perfiles");
         try {
-            urlDescarga = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/uploads/")
-                    .path(nombreArchivo)
-                    .toUriString();
-        } catch (IllegalStateException ex) {
-            urlDescarga = "/uploads/" + nombreArchivo;
+            usuario.setFotoPerfil(urlNueva);
+            usuarioRepository.save(usuario);
+
+            List<UsuarioRol> roles = usuarioRolRepository.findByUsuario(usuario);
+            UsuarioResponse response = UsuarioMapper.toResponse(usuario, roles);
+            limpiarImagenSegunResultadoTransaccion(fotoAnterior, urlNueva);
+            return response;
+        } catch (RuntimeException exception) {
+            fileStorageService.deleteFile(urlNueva);
+            throw exception;
         }
-
-        usuario.setFotoPerfil(urlDescarga);
-        usuarioRepository.save(usuario);
-
-        eliminarArchivoFisicoSiExiste(fotoAnterior);
-
-        List<UsuarioRol> roles = usuarioRolRepository.findByUsuario(usuario);
-        return UsuarioMapper.toResponse(usuario, roles);
     }
 
     @Transactional
@@ -103,16 +98,27 @@ public class PerfilService {
         usuario.setFotoPerfil(null);
         usuarioRepository.save(usuario);
 
-        eliminarArchivoFisicoSiExiste(fotoAnterior);
-
         List<UsuarioRol> roles = usuarioRolRepository.findByUsuario(usuario);
-        return UsuarioMapper.toResponse(usuario, roles);
+        UsuarioResponse response = UsuarioMapper.toResponse(usuario, roles);
+        limpiarImagenSegunResultadoTransaccion(fotoAnterior, null);
+        return response;
     }
 
-    private void eliminarArchivoFisicoSiExiste(String urlFoto) {
-        if (urlFoto != null && urlFoto.contains("/uploads/")) {
-            String nombreArchivo = urlFoto.substring(urlFoto.lastIndexOf("/uploads/") + "/uploads/".length());
-            fileStorageService.deleteFile(nombreArchivo);
+    private void limpiarImagenSegunResultadoTransaccion(String eliminarAlConfirmar, String eliminarSiRevierte) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            fileStorageService.deleteFile(eliminarAlConfirmar);
+            return;
         }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == STATUS_COMMITTED) {
+                    fileStorageService.deleteFile(eliminarAlConfirmar);
+                } else {
+                    fileStorageService.deleteFile(eliminarSiRevierte);
+                }
+            }
+        });
     }
 }

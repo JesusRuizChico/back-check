@@ -80,12 +80,12 @@ class AuthIntegrationTests {
         assertEquals(201, alta.statusCode(), alta.body());
         assertFalse(alta.body().contains("passwordHash"));
         assertEquals(401, cliente.enviar("GET", "/api/perfil", null, false).statusCode());
-        var usuario = usuarios.findByCorreo(correo).orElseThrow();
+        var usuario = usuarios.findByCorreoIgnoreCase(correo).orElseThrow();
         assertTrue(passwordEncoder.matches("ClaveDePrueba123!", usuario.getPasswordHash()));
         String csrfAnterior = cliente.token;
         var acceso = cliente.enviar("POST", "/api/auth/login", login(correo, "ClaveDePrueba123!"), true);
         assertEquals(200, acceso.statusCode(), acceso.body());
-        assertNotNull(usuarios.findByCorreo(correo).orElseThrow().getUltimoAcceso());
+        assertNotNull(usuarios.findByCorreoIgnoreCase(correo).orElseThrow().getUltimoAcceso());
         var perfil = cliente.enviar("GET", "/api/perfil", null, false);
         assertEquals(200, perfil.statusCode(), perfil.body());
         JsonNode datos = mapper.readTree(perfil.body());
@@ -118,13 +118,13 @@ class AuthIntegrationTests {
         assertEquals(400, cliente.enviar("POST", "/api/auth/registro", Map.of(), true).statusCode());
         assertEquals(400, cliente.enviar("POST", "/api/auth/registro", registro("correo-invalido", "arrendador"), true).statusCode());
         assertEquals(400, cliente.enviar("POST", "/api/auth/registro", registro(correo, "administrador"), true).statusCode());
-        assertFalse(usuarios.existsByCorreo(correo));
+        assertFalse(usuarios.existsByCorreoIgnoreCase(correo));
         assertEquals(201, cliente.enviar("POST", "/api/auth/registro", registro(correo, "arrendador"), true).statusCode());
         assertEquals(409, cliente.enviar("POST", "/api/auth/registro", registro(correo.toUpperCase(), "arrendador"), true).statusCode());
         assertEquals(401, cliente.enviar("POST", "/api/auth/login", login(correo, "incorrecta"), true).statusCode());
         assertEquals(401, cliente.enviar("POST", "/api/auth/login", login(correo(), "incorrecta"), true).statusCode());
         assertEquals(401, cliente.enviar("GET", "/api/perfil", null, false).statusCode());
-        jdbc.update("update usuarios set estado='revocado' where correo=?", correo);
+        jdbc.update("update usuarios set estado='suspendido' where correo=?", correo);
         assertEquals(401, cliente.enviar("POST", "/api/auth/login", login(correo, "ClaveDePrueba123!"), true).statusCode());
     }
 }

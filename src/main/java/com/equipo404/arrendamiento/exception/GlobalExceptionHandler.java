@@ -102,6 +102,13 @@ public class GlobalExceptionHandler {
                 new ErrorResponse("CONFLICTO", "Los datos entran en conflicto con un registro existente"));
     }
 
+    @ExceptionHandler(FirebaseStorageUnavailableException.class)
+    public ResponseEntity<ErrorResponse> manejarFirebaseStorageNoDisponible(
+            FirebaseStorageUnavailableException exception) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(
+                new ErrorResponse("ALMACENAMIENTO_NO_DISPONIBLE", exception.getMessage()));
+    }
+
     @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponse> manejarTamanioMaximoExcedido() {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(

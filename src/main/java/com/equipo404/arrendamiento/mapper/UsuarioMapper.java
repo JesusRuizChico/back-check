@@ -13,7 +13,6 @@ public class UsuarioMapper {
             List<UsuarioRol> usuarioRoles) {
 
         List<String> rolesActivos = usuarioRoles.stream()
-                .filter(usuarioRol -> "activo".equals(usuarioRol.getEstado()))
                 .map(usuarioRol -> usuarioRol.getRol().getNombre())
                 .toList();
 

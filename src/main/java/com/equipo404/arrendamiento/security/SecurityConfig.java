@@ -131,10 +131,7 @@ public class SecurityConfig {
                                 "/api/csrf"
                         ).permitAll()
 
-                        .requestMatchers(
-                                "/uploads/**",
-                                "/error"
-                        ).permitAll()
+                        .requestMatchers("/error").permitAll()
 
                         .requestMatchers(
                                 "/api/perfil/**"

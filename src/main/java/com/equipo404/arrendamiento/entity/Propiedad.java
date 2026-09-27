@@ -16,13 +16,13 @@ public class Propiedad {
     private Long idPropiedad;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_propietario", nullable = false)
-    private Usuario propietario;
+    @JoinColumn(name = "id_arrendador", nullable = false)
+    private Usuario arrendador;
 
     @Column(name = "titulo", nullable = false, length = 150)
     private String titulo;
 
-    @Column(name = "descripcion", columnDefinition = "TEXT")
+    @Column(name = "descripcion", nullable = false, columnDefinition = "TEXT")
     private String descripcion;
 
     @Column(name = "precio_mensual", nullable = false, precision = 12, scale = 2)
@@ -88,8 +88,8 @@ public class Propiedad {
     public Long getIdPropiedad() { return idPropiedad; }
     public void setIdPropiedad(Long idPropiedad) { this.idPropiedad = idPropiedad; }
     
-    public Usuario getPropietario() { return propietario; }
-    public void setPropietario(Usuario propietario) { this.propietario = propietario; }
+    public Usuario getArrendador() { return arrendador; }
+    public void setArrendador(Usuario arrendador) { this.arrendador = arrendador; }
     
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
