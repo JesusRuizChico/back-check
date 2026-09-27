@@ -12,16 +12,42 @@ Desde la carpeta backend:
 .\mvnw.cmd spring-boot:run
 ```
 
-Solo se conservan las migraciones V1 y V2 actuales, sin cambios en su contenido.
-Flyway las aplica a una base vacía y Hibernate valida las entidades. Si la base
-conserva el historial anterior de V1/V2/V3, puede haber diferencias de checksum o
-versiones. No se ha reparado ni borrado ese historial: se debe reconciliar por
-separado antes de usar esa base. No desactivar la validación para ocultar el problema.
+Se conserva una migración inicial `V1__base_completa.sql`. Flyway la aplica a una
+base vacía y Hibernate valida las entidades. Si una base ya tiene historial de
+migraciones anteriores, hay que reconciliarlo antes de usarla; no se ha modificado
+ninguna base de datos.
 
 ## Cómo probar los endpoints
 
 Usar un cliente que conserve las cookies, por ejemplo Postman. La autenticación
-usa sesión HTTP con JSESSIONID, no JWT ni tablas adicionales. No se usa Firebase.
+usa sesión HTTP con JSESSIONID, no JWT ni tablas adicionales.
+
+## Fotos y Firebase Storage
+
+Las fotos de perfil y de propiedades se suben desde el backend al bucket de
+Firebase Storage. PostgreSQL conserva la URL de descarga, no los bytes. El
+backend valida contenido real y extensión; acepta JPG/JPEG, PNG y WEBP, hasta
+5 MiB por imagen. Una propiedad admite hasta cinco imágenes.
+
+El proyecto y bucket predeterminados son `habitacheck-3f82b` y
+`habitacheck-3f82b.firebasestorage.app`. Se pueden cambiar con las variables
+`FIREBASE_PROJECT_ID` y `FIREBASE_STORAGE_BUCKET`.
+
+Para autorizar al servidor, configura Application Default Credentials antes de
+iniciarlo. En Windows, por ejemplo:
+
+```powershell
+$env:GOOGLE_APPLICATION_CREDENTIALS = "C:\ruta\fuera-del-repositorio\firebase-service-account.json"
+```
+
+La cuenta de servicio necesita permisos para crear y borrar objetos en el bucket.
+Mantén ese archivo fuera del repositorio y no lo compartas. En despliegue, usa el
+mecanismo de identidad de servicio disponible en el proveedor; no subas el JSON
+de credenciales al servidor como parte del código.
+
+Las URLs de descarga incluyen un token permanente de acceso por enlace. Quien
+tenga la URL puede ver la imagen. Si faltan credenciales o Firebase no está
+disponible, las operaciones de foto responden con error 503.
 
 1. `GET /api/csrf`: guardar las cookies y leer `token` y `headerName` del JSON.
 2. En cada POST enviar el token en la cabecera `X-XSRF-TOKEN` y las cookies.
@@ -82,10 +108,10 @@ deben configurarse HTTPS y cookies adecuadas al entorno.
 
 ## Pruebas
 
-Las pruebas usan una base PostgreSQL exclusiva para tests, distinta de desarrollo.
-Configurar `TEST_DB_URL`, `TEST_DB_USER` y, si corresponde, `TEST_DB_PASSWORD`.
-El perfil test aplica V1 y V2 mediante Flyway y conserva ddl-auto=validate.
-Las pruebas insertan usuarios aleatorios y los conservan solo en esa base de prueba.
+Las pruebas de integración usan una base PostgreSQL exclusiva para tests, distinta
+de desarrollo. Configurar `TEST_DB_URL`, `TEST_DB_USER` y, si corresponde,
+`TEST_DB_PASSWORD`. El perfil test aplica la migración V1 mediante Flyway y
+conserva `ddl-auto=validate`.
 
 ```powershell
 .\mvnw.cmd test

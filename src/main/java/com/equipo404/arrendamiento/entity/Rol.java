@@ -10,7 +10,7 @@ public class Rol{
     @Column(name = "id_rol")
     private Long idRol;
 
-    @Column(name = "nombre", nullable = false, unique = true, length = 400)
+    @Column(name = "nombre", nullable = false, unique = true, length = 40)
     private String nombre;
 
     @Column(name = "descripcion", columnDefinition = "TEXT")

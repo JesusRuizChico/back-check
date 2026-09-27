@@ -40,7 +40,7 @@ public class UsuarioDetailsService implements UserDetailsService {
                 correo.trim().toLowerCase(Locale.ROOT);
 
         Usuario usuario = usuarioRepository
-                .findByCorreo(correoNormalizado)
+                .findByCorreoIgnoreCase(correoNormalizado)
                 .orElseThrow(() ->
                         new UsernameNotFoundException(
                                 "Usuario no encontrado"
@@ -51,8 +51,6 @@ public class UsuarioDetailsService implements UserDetailsService {
                 usuarioRolRepository.findByUsuario(usuario);
 
         List<GrantedAuthority> authorities = usuarioRoles.stream()
-                .filter(usuarioRol ->
-                        "activo".equals(usuarioRol.getEstado()))
                 .<GrantedAuthority>map(usuarioRol ->
                         new SimpleGrantedAuthority(
                                 "ROLE_" +

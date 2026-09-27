@@ -13,10 +13,10 @@ public class Usuario{
     @Column(name = "nombre", nullable = false, length = 150)
     private String nombre;
 
-    @Column(name = "correo", nullable = false, unique = true, length = 254)
+    @Column(name = "correo", nullable = false, length = 254)
     private String correo;
 
-    @Column(name = "password_hash", nullable = false, length = 255)
+    @Column(name = "password", nullable = false, length = 255)
     private String passwordHash;
 
     @Column(name = "telefono", length = 25)
