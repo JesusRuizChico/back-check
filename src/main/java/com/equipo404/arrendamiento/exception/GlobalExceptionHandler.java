@@ -90,6 +90,18 @@ public class GlobalExceptionHandler {
                 new ErrorResponse("DATOS_INVALIDOS", exception.getMessage()));
     }
 
+    @ExceptionHandler(ChatAccesoDenegadoException.class)
+    public ResponseEntity<ErrorResponse> manejarAccesoDenegado(ChatAccesoDenegadoException exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                new ErrorResponse("ACCESO_DENEGADO", exception.getMessage()));
+    }
+
+    @ExceptionHandler(RecursoNoEncontradoException.class)
+    public ResponseEntity<ErrorResponse> manejarRecursoNoEncontrado(RecursoNoEncontradoException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ErrorResponse("NO_ENCONTRADO", exception.getMessage()));
+    }
+
     @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> manejarJsonInvalido() {
         return ResponseEntity.badRequest().body(
