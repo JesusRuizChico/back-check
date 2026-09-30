@@ -408,6 +408,12 @@ BEGIN
      FOR UPDATE;
 
     IF NOT FOUND THEN
+        -- ON DELETE CASCADE elimina mensajes después de borrar la conversación.
+        -- En ese caso ya no hay fila padre que bloquear y el borrado debe continuar.
+        IF TG_OP = 'DELETE' THEN
+            RETURN OLD;
+        END IF;
+
         RAISE EXCEPTION 'La conversacion % no existe', OLD.id_conversacion
             USING ERRCODE = '23503';
     END IF;

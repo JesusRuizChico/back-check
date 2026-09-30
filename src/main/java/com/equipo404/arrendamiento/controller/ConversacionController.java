@@ -2,6 +2,7 @@ package com.equipo404.arrendamiento.controller;
 
 import com.equipo404.arrendamiento.dto.request.EnviarMensajeRequest;
 import com.equipo404.arrendamiento.dto.response.EventoConversacionResponse;
+import com.equipo404.arrendamiento.dto.response.ConversacionPropiedadResponse;
 import com.equipo404.arrendamiento.dto.response.InicioConversacionResponse;
 import com.equipo404.arrendamiento.dto.response.LecturaResponse;
 import com.equipo404.arrendamiento.dto.response.MensajeEnviadoResponse;
@@ -36,6 +37,13 @@ public class ConversacionController {
             SimpMessagingTemplate messagingTemplate) {
         this.conversacionService = conversacionService;
         this.messagingTemplate = messagingTemplate;
+    }
+
+    @GetMapping("/propiedad/{idPropiedad}")
+    public ConversacionPropiedadResponse resolverDesdePropiedad(
+            @PathVariable Long idPropiedad,
+            @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return conversacionService.resolverDesdePropiedad(usuario.getIdUsuario(), idPropiedad);
     }
 
     @PostMapping("/propiedad/{idPropiedad}/mensajes")

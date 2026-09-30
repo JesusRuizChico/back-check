@@ -1,6 +1,7 @@
 package com.equipo404.arrendamiento.service;
 
 import com.equipo404.arrendamiento.dto.request.EnviarMensajeRequest;
+import com.equipo404.arrendamiento.dto.response.ConversacionPropiedadResponse;
 import com.equipo404.arrendamiento.dto.response.InicioConversacionResponse;
 import com.equipo404.arrendamiento.dto.response.LecturaResponse;
 import com.equipo404.arrendamiento.dto.response.MensajeEnviadoResponse;
@@ -63,25 +64,8 @@ public class ConversacionService {
             Long idUsuarioArrendatario,
             Long idPropiedad,
             EnviarMensajeRequest request) {
-        Usuario arrendatario = obtenerUsuario(idUsuarioArrendatario);
-        if (!usuarioRolRepository.tieneRol(idUsuarioArrendatario, "arrendatario")) {
-            throw new ChatAccesoDenegadoException("Solo un arrendatario puede iniciar este contacto.");
-        }
-
-        Propiedad propiedad = propiedadRepository.findById(idPropiedad)
-                .orElseThrow(() -> new RecursoNoEncontradoException("La propiedad no existe."));
-        if ("eliminada".equals(propiedad.getEstado())) {
-            throw new RecursoNoEncontradoException("La propiedad no está disponible para contacto.");
-        }
-
-        Usuario arrendador = propiedad.getArrendador();
-        if (arrendador.getIdUsuario().equals(idUsuarioArrendatario)) {
-            throw new IllegalArgumentException("No puedes iniciar una conversación contigo mismo.");
-        }
-        if (!"activo".equals(arrendador.getEstado())
-                || !usuarioRolRepository.tieneRol(arrendador.getIdUsuario(), "arrendador")) {
-            throw new RecursoNoEncontradoException("El arrendador no está disponible.");
-        }
+        Usuario arrendatario = validarArrendatario(idUsuarioArrendatario);
+        Usuario arrendador = obtenerArrendadorContactable(idUsuarioArrendatario, idPropiedad);
 
         Long idUsuario1 = Math.min(idUsuarioArrendatario, arrendador.getIdUsuario());
         Long idUsuario2 = Math.max(idUsuarioArrendatario, arrendador.getIdUsuario());
@@ -99,6 +83,20 @@ public class ConversacionService {
                 mapearMensaje(mensaje),
                 aviso,
                 arrendador.getUltimoAcceso());
+    }
+
+    @Transactional(readOnly = true)
+    public ConversacionPropiedadResponse resolverDesdePropiedad(
+            Long idUsuarioArrendatario, Long idPropiedad) {
+        validarArrendatario(idUsuarioArrendatario);
+        Usuario arrendador = obtenerArrendadorContactable(idUsuarioArrendatario, idPropiedad);
+        Long idUsuario1 = Math.min(idUsuarioArrendatario, arrendador.getIdUsuario());
+        Long idUsuario2 = Math.max(idUsuarioArrendatario, arrendador.getIdUsuario());
+        Long idConversacion = conversacionRepository
+                .findByUsuario1_IdUsuarioAndUsuario2_IdUsuario(idUsuario1, idUsuario2)
+                .map(Conversacion::getIdConversacion)
+                .orElse(null);
+        return new ConversacionPropiedadResponse(idConversacion, mapearUsuario(arrendador));
     }
 
     @Transactional(readOnly = true)
@@ -223,6 +221,32 @@ public class ConversacionService {
     private Usuario obtenerUsuario(Long idUsuario) {
         return usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new RecursoNoEncontradoException("El usuario no existe."));
+    }
+
+    private Usuario obtenerArrendadorContactable(Long idUsuarioArrendatario, Long idPropiedad) {
+        Propiedad propiedad = propiedadRepository.findById(idPropiedad)
+                .orElseThrow(() -> new RecursoNoEncontradoException("La propiedad no existe."));
+        if ("eliminada".equals(propiedad.getEstado())) {
+            throw new RecursoNoEncontradoException("La propiedad no está disponible para contacto.");
+        }
+
+        Usuario arrendador = propiedad.getArrendador();
+        if (arrendador.getIdUsuario().equals(idUsuarioArrendatario)) {
+            throw new IllegalArgumentException("No puedes iniciar una conversación contigo mismo.");
+        }
+        if (!"activo".equals(arrendador.getEstado())
+                || !usuarioRolRepository.tieneRol(arrendador.getIdUsuario(), "arrendador")) {
+            throw new RecursoNoEncontradoException("El arrendador no está disponible.");
+        }
+        return arrendador;
+    }
+
+    private Usuario validarArrendatario(Long idUsuarioArrendatario) {
+        Usuario arrendatario = obtenerUsuario(idUsuarioArrendatario);
+        if (!usuarioRolRepository.tieneRol(idUsuarioArrendatario, "arrendatario")) {
+            throw new ChatAccesoDenegadoException("Solo un arrendatario puede iniciar este contacto.");
+        }
+        return arrendatario;
     }
 
     private boolean arrendadorInactivo(Usuario arrendador) {
