@@ -1,6 +1,7 @@
 package com.equipo404.arrendamiento;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.CookieManager;
@@ -108,6 +109,13 @@ class ConversacionIntegrationTests {
         Cliente arrendador = new Cliente();
         Cliente ajeno = iniciarSesion(idAjeno);
 
+        var consultaInicial = arrendatario.enviar("GET",
+                "/api/conversaciones/propiedad/" + idPropiedad, null, false);
+        assertEquals(200, consultaInicial.statusCode(), consultaInicial.body());
+        assertTrue(mapper.readTree(consultaInicial.body()).get("idConversacion").isNull());
+        assertEquals(idArrendador, mapper.readTree(consultaInicial.body())
+                .get("arrendador").get("idUsuario").asLong());
+
         var primera = arrendatario.enviar("POST",
                 "/api/conversaciones/propiedad/" + idPropiedad + "/mensajes",
                 Map.of("contenido", "¿Sigue disponible?"), true);
@@ -116,6 +124,12 @@ class ConversacionIntegrationTests {
         long idConversacion = primeraRespuesta.get("idConversacion").asLong();
         conversacionesCreadas.add(idConversacion);
         assertTrue(primeraRespuesta.get("avisoRespuestaLenta").asBoolean());
+
+        var consultaPosterior = arrendatario.enviar("GET",
+                "/api/conversaciones/propiedad/" + idOtraPropiedad, null, false);
+        assertEquals(200, consultaPosterior.statusCode(), consultaPosterior.body());
+        assertEquals(idConversacion,
+                mapper.readTree(consultaPosterior.body()).get("idConversacion").asLong());
 
         var segunda = arrendatario.enviar("POST",
                 "/api/conversaciones/propiedad/" + idOtraPropiedad + "/mensajes",
@@ -175,6 +189,30 @@ class ConversacionIntegrationTests {
         assertEquals(200, lista.statusCode(), lista.body());
         assertEquals(1, mapper.readTree(lista.body()).size());
         assertEquals(1, mapper.readTree(lista.body()).get(0).get("mensajesNoLeidos").asInt());
+    }
+
+    @Test
+    void catalogoMuestraPropiedadesDisponiblesYNoIncluyeLasPausadas() throws Exception {
+        long idArrendador = crearUsuario("arrendador");
+        long idArrendatario = crearUsuario("arrendatario");
+        long idDisponible = crearPropiedad(idArrendador, "Casa disponible");
+        long idPausada = crearPropiedad(idArrendador, "Casa pausada");
+        jdbc.update("update propiedades set estado = 'pausada' where id_propiedad = ?", idPausada);
+
+        Cliente arrendatario = iniciarSesion(idArrendatario);
+        var respuesta = arrendatario.enviar("GET", "/api/propiedades", null, false);
+
+        assertEquals(200, respuesta.statusCode(), respuesta.body());
+        var catalogo = mapper.readTree(respuesta.body());
+        boolean incluyeDisponible = false;
+        boolean incluyePausada = false;
+        for (JsonNode propiedad : catalogo) {
+            long id = propiedad.get("idPropiedad").asLong();
+            incluyeDisponible |= id == idDisponible;
+            incluyePausada |= id == idPausada;
+        }
+        assertTrue(incluyeDisponible, "El catálogo debe incluir la propiedad disponible");
+        assertFalse(incluyePausada, "El catálogo no debe incluir propiedades pausadas");
     }
 
     private long crearUsuario(String rol) {

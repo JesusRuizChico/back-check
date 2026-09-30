@@ -111,6 +111,13 @@ public class PropiedadService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<PropiedadResponse> obtenerCatalogoDisponible() {
+        return propiedadRepository.findByEstadoOrderByFechaPublicacionDesc("disponible").stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     private PropiedadResponse mapToResponse(Propiedad propiedad) {
         PropiedadResponse response = new PropiedadResponse();
         response.setIdPropiedad(propiedad.getIdPropiedad());
