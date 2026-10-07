@@ -1,5 +1,6 @@
 package com.equipo404.arrendamiento.controller;
 
+/*comentario de prueba */
 import com.equipo404.arrendamiento.dto.request.LoginRequest;
 import com.equipo404.arrendamiento.dto.request.RegistroRequest;
 import com.equipo404.arrendamiento.dto.response.UsuarioResponse;
@@ -36,10 +37,10 @@ public class AuthController {
     private final UsuarioRepository usuarioRepository;
 
     public AuthController(RegistroService registroService, PerfilService perfilService,
-                          AuthenticationManager authenticationManager,
-                          SessionAuthenticationStrategy loginSessionStrategy,
-                          SecurityContextRepository contextRepository,
-                          UsuarioRepository usuarioRepository) {
+            AuthenticationManager authenticationManager,
+            SessionAuthenticationStrategy loginSessionStrategy,
+            SecurityContextRepository contextRepository,
+            UsuarioRepository usuarioRepository) {
         this.registroService = registroService;
         this.perfilService = perfilService;
         this.authenticationManager = authenticationManager;
@@ -61,8 +62,8 @@ public class AuthController {
 
     @PostMapping("/api/auth/login")
     public UsuarioResponse login(@Valid @RequestBody LoginRequest login,
-                                 HttpServletRequest request, HttpServletResponse response) {
-        
+            HttpServletRequest request, HttpServletResponse response) {
+
         String correoNormalizado = login.getCorreo().trim().toLowerCase(Locale.ROOT);
         Usuario usuarioEntity = usuarioRepository.findByCorreoIgnoreCase(correoNormalizado).orElse(null);
         if (usuarioEntity != null && usuarioEntity.getBloqueadoHasta() != null) {
