@@ -8,7 +8,7 @@ import java.time.OffsetDateTime;
     name = "usuario_rol",
     uniqueConstraints = {
         @UniqueConstraint(
-            name = "uq_usuario_rol",
+            name = "uq_usuario_rol_usuario_rol",
             columnNames = {"id_usuario", "id_rol"}
         )
     }
@@ -27,9 +27,6 @@ public class UsuarioRol {
     @ManyToOne
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
-
-    @Column(name = "estado", nullable = false, length = 20)
-    private String estado;
 
     @Column(name = "fecha_asignacion", nullable = false)
     private OffsetDateTime fechaAsignacion;
@@ -59,14 +56,6 @@ public class UsuarioRol {
 
     public void setRol(Rol rol) {
         this.rol = rol;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
     }
 
     public OffsetDateTime getFechaAsignacion() {

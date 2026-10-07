@@ -24,6 +24,11 @@ public class PropiedadController {
         this.propiedadService = propiedadService;
     }
 
+    @GetMapping
+    public ResponseEntity<List<PropiedadResponse>> obtenerCatalogoDisponible() {
+        return ResponseEntity.ok(propiedadService.obtenerCatalogoDisponible());
+    }
+
     @PostMapping(consumes = {"multipart/form-data"})
     @PreAuthorize("hasAuthority('ROLE_ARRENDADOR')")
     public ResponseEntity<PropiedadResponse> publicarPropiedad(

@@ -85,7 +85,7 @@ public class RegistroService {
             throw new RolNoPermitidoException();
         }
 
-        if (usuarioRepository.existsByCorreo(correo)) {
+        if (usuarioRepository.existsByCorreoIgnoreCase(correo)) {
             throw new CorreoYaRegistradoException();
         }
 
@@ -112,7 +112,6 @@ public class RegistroService {
 
         usuarioRol.setUsuario(usuario);
         usuarioRol.setRol(rol);
-        usuarioRol.setEstado("activo");
         usuarioRol.setFechaAsignacion(OffsetDateTime.now());
 
         usuarioRolRepository.save(usuarioRol);

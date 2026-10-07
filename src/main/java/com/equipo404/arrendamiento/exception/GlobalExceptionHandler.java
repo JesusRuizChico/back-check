@@ -90,6 +90,18 @@ public class GlobalExceptionHandler {
                 new ErrorResponse("DATOS_INVALIDOS", exception.getMessage()));
     }
 
+    @ExceptionHandler(ChatAccesoDenegadoException.class)
+    public ResponseEntity<ErrorResponse> manejarAccesoDenegado(ChatAccesoDenegadoException exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                new ErrorResponse("ACCESO_DENEGADO", exception.getMessage()));
+    }
+
+    @ExceptionHandler(RecursoNoEncontradoException.class)
+    public ResponseEntity<ErrorResponse> manejarRecursoNoEncontrado(RecursoNoEncontradoException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ErrorResponse("NO_ENCONTRADO", exception.getMessage()));
+    }
+
     @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> manejarJsonInvalido() {
         return ResponseEntity.badRequest().body(
@@ -100,5 +112,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> manejarConflicto() {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 new ErrorResponse("CONFLICTO", "Los datos entran en conflicto con un registro existente"));
+    }
+
+    @ExceptionHandler(FirebaseStorageUnavailableException.class)
+    public ResponseEntity<ErrorResponse> manejarFirebaseStorageNoDisponible(
+            FirebaseStorageUnavailableException exception) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(
+                new ErrorResponse("ALMACENAMIENTO_NO_DISPONIBLE", exception.getMessage()));
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> manejarTamanioMaximoExcedido() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ErrorResponse("TAMANIO_EXCEDIDO", "El archivo excede el tamaño máximo permitido de 5 MB."));
     }
 }

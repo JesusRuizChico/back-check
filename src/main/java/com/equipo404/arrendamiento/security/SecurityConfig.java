@@ -128,9 +128,10 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 HttpMethod.GET,
-                                "/api/csrf",
-                                "/uploads/**"
+                                "/api/csrf"
                         ).permitAll()
+
+                        .requestMatchers("/error").permitAll()
 
                         .requestMatchers(
                                 "/api/perfil/**"

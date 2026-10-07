@@ -3,48 +3,29 @@ package com.equipo404.arrendamiento.service;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.UUID;
-
 @Service
 public class FileStorageService {
 
-    private final Path fileStorageLocation;
+    private final FirebaseStorageClient firebaseStorageClient;
+    private final ImageFileValidator imageFileValidator;
 
-    public FileStorageService() {
-        this.fileStorageLocation = Paths.get("uploads").toAbsolutePath().normalize();
-        try {
-            Files.createDirectories(this.fileStorageLocation);
-        } catch (Exception ex) {
-            throw new RuntimeException("Could not create the directory where the uploaded files will be stored.", ex);
-        }
+    public FileStorageService(
+            FirebaseStorageClient firebaseStorageClient,
+            ImageFileValidator imageFileValidator) {
+        this.firebaseStorageClient = firebaseStorageClient;
+        this.imageFileValidator = imageFileValidator;
     }
 
-    public String storeFile(MultipartFile file) {
-        String originalFileName = file.getOriginalFilename();
-        String fileExtension = "";
+    public String storeImage(MultipartFile file) {
+        return storeImage(file, "perfiles");
+    }
 
-        if (originalFileName != null && originalFileName.contains(".")) {
-            fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
-        }
+    public String storeImage(MultipartFile file, String folder) {
+        ImageFileValidator.ValidatedImage image = imageFileValidator.validate(file);
+        return firebaseStorageClient.upload(folder, image);
+    }
 
-        String targetFileName = UUID.randomUUID().toString() + fileExtension;
-
-        try {
-            if (targetFileName.contains("..")) {
-                throw new RuntimeException("Sorry! Filename contains invalid path sequence " + targetFileName);
-            }
-
-            Path targetLocation = this.fileStorageLocation.resolve(targetFileName);
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-
-            return targetFileName;
-        } catch (IOException ex) {
-            throw new RuntimeException("Could not store file " + targetFileName + ". Please try again!", ex);
-        }
+    public void deleteFile(String downloadUrl) {
+        firebaseStorageClient.deleteByDownloadUrl(downloadUrl);
     }
 }
