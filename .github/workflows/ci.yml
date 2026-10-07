@@ -1,0 +1,72 @@
+name: CI Backend (back-check)
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch: {}
+
+jobs:
+  build-and-test:
+    name: Build y pruebas (Spring Boot)
+    runs-on: ubuntu-latest
+
+    # Base de datos real para las pruebas (JPA/Flyway), con la misma
+    # configuración que docker-compose.yml usa en desarrollo local.
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: habitacheck_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_URL: jdbc:postgresql://localhost:5432/habitacheck_db
+      DB_USER: postgres
+      DB_PASSWORD: password
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Compilar (mvn compile)
+        run: ./mvnw -B compile
+
+      - name: Ejecutar pruebas (mvn test)
+        run: ./mvnw -B test
+
+      - name: Publicar resultados de pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-pruebas-backend
+          path: target/surefire-reports/
+          retention-days: 7
+
+      - name: Empaquetar (mvn package)
+        if: github.event_name == 'push'
+        run: ./mvnw -B package -DskipTests
+
+      - name: Publicar el .jar generado
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: target/*.jar
+          retention-days: 7
