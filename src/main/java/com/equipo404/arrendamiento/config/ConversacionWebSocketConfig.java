@@ -15,12 +15,15 @@ public class ConversacionWebSocketConfig implements WebSocketMessageBrokerConfig
 
     private final ChatHandshakeInterceptor handshakeInterceptor;
     private final ConversacionChannelInterceptor channelInterceptor;
+    private final CorsProperties corsProperties;
 
     public ConversacionWebSocketConfig(
             ChatHandshakeInterceptor handshakeInterceptor,
-            ConversacionChannelInterceptor channelInterceptor) {
+            ConversacionChannelInterceptor channelInterceptor,
+            CorsProperties corsProperties) {
         this.handshakeInterceptor = handshakeInterceptor;
         this.channelInterceptor = channelInterceptor;
+        this.corsProperties = corsProperties;
     }
 
     @Override
@@ -34,7 +37,7 @@ public class ConversacionWebSocketConfig implements WebSocketMessageBrokerConfig
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
                 .addInterceptors(handshakeInterceptor)
-                .setAllowedOriginPatterns("http://localhost:*", "http://127.0.0.1:*");
+                .setAllowedOriginPatterns(corsProperties.comoArreglo());
     }
 
     @Override

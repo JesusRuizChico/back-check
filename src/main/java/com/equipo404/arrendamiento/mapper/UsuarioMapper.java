@@ -3,15 +3,14 @@ package com.equipo404.arrendamiento.mapper;
 import com.equipo404.arrendamiento.dto.response.UsuarioResponse;
 import com.equipo404.arrendamiento.entity.Usuario;
 import com.equipo404.arrendamiento.entity.UsuarioRol;
-
 import java.util.List;
 
-public class UsuarioMapper {
+public final class UsuarioMapper {
 
-    public static UsuarioResponse toResponse(
-            Usuario usuario,
-            List<UsuarioRol> usuarioRoles) {
+    private UsuarioMapper() {
+    }
 
+    public static UsuarioResponse toResponse(Usuario usuario, List<UsuarioRol> usuarioRoles) {
         List<String> rolesActivos = usuarioRoles.stream()
                 .map(usuarioRol -> usuarioRol.getRol().getNombre())
                 .toList();
@@ -22,7 +21,7 @@ public class UsuarioMapper {
                 usuario.getCorreo(),
                 usuario.getTelefono(),
                 usuario.getFotoPerfil(),
-                rolesActivos
-        );
+                usuario.getBiografia(),
+                rolesActivos);
     }
 }
