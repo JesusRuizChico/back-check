@@ -1,0 +1,40 @@
+# Entorno local de HabitaCheck.
+#   docker compose up -d db        -> solo PostgreSQL (backend con ./mvnw spring-boot:run)
+#   docker compose up -d --build   -> PostgreSQL + backend en http://localhost:8080
+services:
+  db:
+    image: postgres:16
+    container_name: habitacheck-db
+    environment:
+      POSTGRES_DB: habitacheck_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - habitacheck-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d habitacheck_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: .
+    container_name: habitacheck-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/habitacheck_db
+      DB_USER: postgres
+      DB_PASSWORD: password
+      UPLOADS_DIR: /app/uploads
+    ports:
+      - "8080:8080"
+    volumes:
+      - habitacheck-uploads:/app/uploads
+
+volumes:
+  habitacheck-db-data:
+  habitacheck-uploads:

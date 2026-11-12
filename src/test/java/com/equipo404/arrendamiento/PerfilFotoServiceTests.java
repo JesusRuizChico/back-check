@@ -5,7 +5,7 @@ import com.equipo404.arrendamiento.entity.Usuario;
 import com.equipo404.arrendamiento.repository.UsuarioRepository;
 import com.equipo404.arrendamiento.repository.UsuarioRolRepository;
 import com.equipo404.arrendamiento.service.FileStorageService;
-import com.equipo404.arrendamiento.service.PerfilService;
+import com.equipo404.arrendamiento.service.impl.PerfilServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -34,8 +35,11 @@ class PerfilFotoServiceTests {
     @Mock
     private FileStorageService fileStorageService;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
-    private PerfilService perfilService;
+    private PerfilServiceImpl perfilService;
 
     private Usuario usuarioPrueba;
 
@@ -46,7 +50,7 @@ class PerfilFotoServiceTests {
         usuarioPrueba.setNombre("Abigail Hernández");
         usuarioPrueba.setCorreo("abigail@example.com");
         usuarioPrueba.setEstado("activo");
-        usuarioPrueba.setFotoPerfil("http://localhost:8080/uploads/foto-antigua.jpg");
+        usuarioPrueba.setFotoPerfil("/uploads/perfiles/foto-antigua.jpg");
     }
 
     @Test
@@ -61,7 +65,7 @@ class PerfilFotoServiceTests {
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioPrueba));
         when(fileStorageService.storeImage(archivoImagen, "perfiles"))
-                .thenReturn("https://firebasestorage.googleapis.com/v0/b/habitacheck-3f82b.firebasestorage.app/o/perfiles%2Fuuid-nueva-foto.png?alt=media&token=test");
+                .thenReturn("/uploads/perfiles/uuid-nueva-foto.png");
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(usuarioRolRepository.findByUsuario(any(Usuario.class))).thenReturn(Collections.emptyList());
 
@@ -70,7 +74,7 @@ class PerfilFotoServiceTests {
         assertNotNull(response);
         assertNotNull(response.getFotoPerfil());
         assertTrue(response.getFotoPerfil().contains("uuid-nueva-foto.png"));
-        verify(fileStorageService).deleteFile("http://localhost:8080/uploads/foto-antigua.jpg");
+        verify(fileStorageService).deleteFile("/uploads/perfiles/foto-antigua.jpg");
         verify(usuarioRepository).save(usuarioPrueba);
     }
 
@@ -93,7 +97,7 @@ class PerfilFotoServiceTests {
         );
 
         assertTrue(ex.getMessage().contains("no soportado"));
-        assertEquals("http://localhost:8080/uploads/foto-antigua.jpg", usuarioPrueba.getFotoPerfil());
+        assertEquals("/uploads/perfiles/foto-antigua.jpg", usuarioPrueba.getFotoPerfil());
         verify(usuarioRepository, never()).save(any());
     }
 
@@ -116,7 +120,7 @@ class PerfilFotoServiceTests {
         );
 
         assertTrue(ex.getMessage().contains("no debe exceder los 5 MB"));
-        assertEquals("http://localhost:8080/uploads/foto-antigua.jpg", usuarioPrueba.getFotoPerfil());
+        assertEquals("/uploads/perfiles/foto-antigua.jpg", usuarioPrueba.getFotoPerfil());
         verify(usuarioRepository, never()).save(any());
     }
 
@@ -131,7 +135,7 @@ class PerfilFotoServiceTests {
 
         assertNotNull(response);
         assertNull(response.getFotoPerfil(), "La foto de perfil debe ser null para que se muestre el avatar predeterminado");
-        verify(fileStorageService).deleteFile("http://localhost:8080/uploads/foto-antigua.jpg");
+        verify(fileStorageService).deleteFile("/uploads/perfiles/foto-antigua.jpg");
         verify(usuarioRepository).save(usuarioPrueba);
     }
 }

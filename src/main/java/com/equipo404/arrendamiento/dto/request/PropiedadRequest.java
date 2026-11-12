@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -61,6 +63,25 @@ public class PropiedadRequest {
     @Digits(integer = 3, fraction = 6)
     private BigDecimal longitud;
     
+    @NotNull(message = "El número de recámaras es obligatorio")
+    @Min(0)
+    @Max(50)
+    private Short habitaciones;
+
+    @NotNull(message = "El número de baños es obligatorio")
+    @Min(0)
+    @Max(50)
+    private Short banos;
+
+    @NotNull(message = "El número de estacionamientos es obligatorio")
+    @Min(0)
+    @Max(50)
+    private Short estacionamientos;
+
+    @Positive
+    @Digits(integer = 6, fraction = 2)
+    private BigDecimal metrosCuadrados;
+
     private List<@NotNull @Positive Long> serviciosIds;
 
     public String getTitulo() { return titulo; }
@@ -87,6 +108,14 @@ public class PropiedadRequest {
     public void setLatitud(BigDecimal latitud) { this.latitud = latitud; }
     public BigDecimal getLongitud() { return longitud; }
     public void setLongitud(BigDecimal longitud) { this.longitud = longitud; }
+    public Short getHabitaciones() { return habitaciones; }
+    public void setHabitaciones(Short habitaciones) { this.habitaciones = habitaciones; }
+    public Short getBanos() { return banos; }
+    public void setBanos(Short banos) { this.banos = banos; }
+    public Short getEstacionamientos() { return estacionamientos; }
+    public void setEstacionamientos(Short estacionamientos) { this.estacionamientos = estacionamientos; }
+    public BigDecimal getMetrosCuadrados() { return metrosCuadrados; }
+    public void setMetrosCuadrados(BigDecimal metrosCuadrados) { this.metrosCuadrados = metrosCuadrados; }
     public List<Long> getServiciosIds() { return serviciosIds; }
     public void setServiciosIds(List<Long> serviciosIds) { this.serviciosIds = serviciosIds; }
 }
