@@ -1,51 +1,78 @@
 package com.equipo404.arrendamiento.controller;
 
+import com.equipo404.arrendamiento.dto.request.CambiarEstadoPropiedadRequest;
 import com.equipo404.arrendamiento.dto.request.PropiedadRequest;
 import com.equipo404.arrendamiento.dto.response.PropiedadResponse;
 import com.equipo404.arrendamiento.security.UsuarioPrincipal;
-import com.equipo404.arrendamiento.service.PropiedadService;
+import com.equipo404.arrendamiento.service.CatalogoPropiedadService;
+import com.equipo404.arrendamiento.service.GestionPropiedadService;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/propiedades")
 public class PropiedadController {
 
-    private final PropiedadService propiedadService;
+    private final CatalogoPropiedadService catalogoPropiedadService;
+    private final GestionPropiedadService gestionPropiedadService;
 
-    public PropiedadController(PropiedadService propiedadService) {
-        this.propiedadService = propiedadService;
+    public PropiedadController(
+            CatalogoPropiedadService catalogoPropiedadService,
+            GestionPropiedadService gestionPropiedadService) {
+        this.catalogoPropiedadService = catalogoPropiedadService;
+        this.gestionPropiedadService = gestionPropiedadService;
     }
 
     @GetMapping
-    public ResponseEntity<List<PropiedadResponse>> obtenerCatalogoDisponible() {
-        return ResponseEntity.ok(propiedadService.obtenerCatalogoDisponible());
+    public List<PropiedadResponse> obtenerCatalogoDisponible(
+            @AuthenticationPrincipal UsuarioPrincipal principal) {
+        return catalogoPropiedadService.obtenerCatalogoDisponible(principal.getIdUsuario());
     }
 
-    @PostMapping(consumes = {"multipart/form-data"})
-    @PreAuthorize("hasAuthority('ROLE_ARRENDADOR')")
-    public ResponseEntity<PropiedadResponse> publicarPropiedad(
+    @GetMapping("/{idPropiedad}")
+    public PropiedadResponse obtenerDetalle(
+            @PathVariable Long idPropiedad,
+            @AuthenticationPrincipal UsuarioPrincipal principal) {
+        return catalogoPropiedadService.obtenerDetalle(idPropiedad, principal.getIdUsuario());
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ARRENDADOR')")
+    @ResponseStatus(HttpStatus.CREATED)
+    public PropiedadResponse publicarPropiedad(
             @AuthenticationPrincipal UsuarioPrincipal principal,
             @Valid @ModelAttribute PropiedadRequest request,
             @RequestPart(value = "imagenes", required = false) List<MultipartFile> imagenes) {
-
-        PropiedadResponse response = propiedadService.publicarPropiedad(principal.getIdUsuario(), request, imagenes);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return gestionPropiedadService.publicarPropiedad(principal.getIdUsuario(), request, imagenes);
     }
 
     @GetMapping("/mis-propiedades")
-    @PreAuthorize("hasAuthority('ROLE_ARRENDADOR')")
-    public ResponseEntity<List<PropiedadResponse>> obtenerMisPropiedades(
+    @PreAuthorize("hasRole('ARRENDADOR')")
+    public List<PropiedadResponse> obtenerMisPropiedades(@AuthenticationPrincipal UsuarioPrincipal principal) {
+        return gestionPropiedadService.obtenerMisPropiedades(principal.getIdUsuario());
+    }
+
+    @PatchMapping("/{idPropiedad}/estado")
+    @PreAuthorize("hasRole('ARRENDADOR')")
+    public PropiedadResponse cambiarEstado(
+            @PathVariable Long idPropiedad,
+            @Valid @RequestBody CambiarEstadoPropiedadRequest request,
             @AuthenticationPrincipal UsuarioPrincipal principal) {
-        
-        List<PropiedadResponse> propiedades = propiedadService.obtenerMisPropiedades(principal.getIdUsuario());
-        return ResponseEntity.ok(propiedades);
+        return gestionPropiedadService.cambiarEstado(principal.getIdUsuario(), idPropiedad, request.estado());
+    }
+
+    @DeleteMapping("/{idPropiedad}")
+    @PreAuthorize("hasRole('ARRENDADOR')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminarPropiedad(
+            @PathVariable Long idPropiedad,
+            @AuthenticationPrincipal UsuarioPrincipal principal) {
+        gestionPropiedadService.eliminarPropiedad(principal.getIdUsuario(), idPropiedad);
     }
 }

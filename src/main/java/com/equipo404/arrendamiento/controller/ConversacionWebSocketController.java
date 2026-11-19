@@ -2,19 +2,18 @@ package com.equipo404.arrendamiento.controller;
 
 import com.equipo404.arrendamiento.dto.request.EnviarMensajeRequest;
 import com.equipo404.arrendamiento.dto.response.ErrorResponse;
-import com.equipo404.arrendamiento.dto.response.EventoConversacionResponse;
 import com.equipo404.arrendamiento.dto.response.MensajeEnviadoResponse;
 import com.equipo404.arrendamiento.exception.ChatAccesoDenegadoException;
 import com.equipo404.arrendamiento.exception.RecursoNoEncontradoException;
 import com.equipo404.arrendamiento.security.UsuarioPrincipal;
 import com.equipo404.arrendamiento.service.ConversacionService;
+import com.equipo404.arrendamiento.service.NotificadorConversacion;
 import jakarta.validation.Valid;
 import java.security.Principal;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -23,13 +22,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 public class ConversacionWebSocketController {
 
     private final ConversacionService conversacionService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final NotificadorConversacion notificador;
 
     public ConversacionWebSocketController(
             ConversacionService conversacionService,
-            SimpMessagingTemplate messagingTemplate) {
+            NotificadorConversacion notificador) {
         this.conversacionService = conversacionService;
-        this.messagingTemplate = messagingTemplate;
+        this.notificador = notificador;
     }
 
     @MessageMapping("/conversaciones/{idConversacion}/mensajes")
@@ -40,11 +39,8 @@ public class ConversacionWebSocketController {
         Long idUsuario = obtenerIdUsuario(principal);
         MensajeEnviadoResponse respuesta = conversacionService.enviar(
                 idConversacion, idUsuario, request);
-        messagingTemplate.convertAndSend(
-                "/topic/conversaciones/" + idConversacion,
-                new EventoConversacionResponse(
-                        "MENSAJE", respuesta.mensaje(), idUsuario,
-                        respuesta.mensaje().fechaEnvio(), respuesta.avisoRespuestaLenta()));
+        notificador.notificarMensaje(idConversacion, respuesta.mensaje(), idUsuario,
+                respuesta.avisoRespuestaLenta());
     }
 
     @MessageExceptionHandler({

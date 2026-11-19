@@ -1,6 +1,6 @@
 package com.equipo404.arrendamiento;
 
-import com.equipo404.arrendamiento.service.ImageFileValidator;
+import com.equipo404.arrendamiento.service.impl.ImageFileValidator;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 

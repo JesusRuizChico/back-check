@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -141,7 +141,7 @@ class ConversacionIntegrationTests {
         arrendador.iniciarSesion(correoDe(idArrendador));
         CompletableFuture<Map> eventoRecibido = new CompletableFuture<>();
         WebSocketStompClient stompClient = new WebSocketStompClient(new StandardWebSocketClient());
-        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+        stompClient.setMessageConverter(new JacksonJsonMessageConverter());
         StompSession sesionArrendatario = conectar(arrendatario, stompClient);
         sesionArrendatario.subscribe("/topic/conversaciones/" + idConversacion,
                 new StompFrameHandler() {

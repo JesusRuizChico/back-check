@@ -1,7 +1,7 @@
 package com.equipo404.arrendamiento.security;
 
 import com.equipo404.arrendamiento.exception.ChatAccesoDenegadoException;
-import com.equipo404.arrendamiento.service.ConversacionService;
+import com.equipo404.arrendamiento.service.AccesoConversacionService;
 import jakarta.servlet.http.HttpSession;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -25,10 +25,10 @@ public class ConversacionChannelInterceptor implements ChannelInterceptor {
     private static final Pattern DESTINO_ENVIO =
             Pattern.compile("^/app/conversaciones/([1-9][0-9]*)/mensajes$");
 
-    private final ConversacionService conversacionService;
+    private final AccesoConversacionService accesoConversacionService;
 
-    public ConversacionChannelInterceptor(ConversacionService conversacionService) {
-        this.conversacionService = conversacionService;
+    public ConversacionChannelInterceptor(AccesoConversacionService accesoConversacionService) {
+        this.accesoConversacionService = accesoConversacionService;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class ConversacionChannelInterceptor implements ChannelInterceptor {
         if (matcher == null || !matcher.matches()) {
             throw new ChatAccesoDenegadoException("Solo puedes abrir canales de tus conversaciones.");
         }
-        conversacionService.validarParticipante(Long.valueOf(matcher.group(1)), idUsuario);
+        accesoConversacionService.validarParticipante(Long.valueOf(matcher.group(1)), idUsuario);
     }
 
     private void validarEnvio(StompHeaderAccessor accessor) {
@@ -85,7 +85,7 @@ public class ConversacionChannelInterceptor implements ChannelInterceptor {
         if (matcher == null || !matcher.matches()) {
             throw new ChatAccesoDenegadoException("Solo se permite enviar mensajes a conversaciones.");
         }
-        conversacionService.validarParticipante(Long.valueOf(matcher.group(1)), idUsuario);
+        accesoConversacionService.validarParticipante(Long.valueOf(matcher.group(1)), idUsuario);
     }
 
     private Long validarSesion(StompHeaderAccessor accessor) {

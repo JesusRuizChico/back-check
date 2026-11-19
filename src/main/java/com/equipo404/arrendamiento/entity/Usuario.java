@@ -25,6 +25,9 @@ public class Usuario{
     @Column(name = "foto_perfil", columnDefinition = "TEXT")
     private String fotoPerfil;
 
+    @Column(name = "biografia", length = 500)
+    private String biografia;
+
     @Column(name = "estado", nullable = false, length = 20)
     private String estado = "activo";
 
@@ -99,6 +102,18 @@ public class Usuario{
 
     public void setFotoPerfil(String fotoPerfil) {
         this.fotoPerfil = fotoPerfil;
+    }
+
+    public String getBiografia() {
+        return biografia;
+    }
+
+    public void setBiografia(String biografia) {
+        this.biografia = biografia;
+    }
+
+    public boolean estaActivo() {
+        return "activo".equals(estado);
     }
 
     public String getEstado() {

@@ -1,7 +1,6 @@
 package com.equipo404.arrendamiento.controller;
 
 import com.equipo404.arrendamiento.dto.request.EnviarMensajeRequest;
-import com.equipo404.arrendamiento.dto.response.EventoConversacionResponse;
 import com.equipo404.arrendamiento.dto.response.ConversacionPropiedadResponse;
 import com.equipo404.arrendamiento.dto.response.InicioConversacionResponse;
 import com.equipo404.arrendamiento.dto.response.LecturaResponse;
@@ -10,11 +9,11 @@ import com.equipo404.arrendamiento.dto.response.MensajePaginaResponse;
 import com.equipo404.arrendamiento.dto.response.ResumenConversacionResponse;
 import com.equipo404.arrendamiento.security.UsuarioPrincipal;
 import com.equipo404.arrendamiento.service.ConversacionService;
+import com.equipo404.arrendamiento.service.NotificadorConversacion;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,13 +29,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class ConversacionController {
 
     private final ConversacionService conversacionService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final NotificadorConversacion notificador;
 
     public ConversacionController(
             ConversacionService conversacionService,
-            SimpMessagingTemplate messagingTemplate) {
+            NotificadorConversacion notificador) {
         this.conversacionService = conversacionService;
-        this.messagingTemplate = messagingTemplate;
+        this.notificador = notificador;
     }
 
     @GetMapping("/propiedad/{idPropiedad}")
@@ -53,7 +52,7 @@ public class ConversacionController {
             @AuthenticationPrincipal UsuarioPrincipal usuario) {
         InicioConversacionResponse respuesta = conversacionService.iniciarDesdePropiedad(
                 usuario.getIdUsuario(), idPropiedad, request);
-        publicarMensaje(respuesta.idConversacion(), respuesta.mensajeInicial(),
+        notificador.notificarMensaje(respuesta.idConversacion(), respuesta.mensajeInicial(),
                 usuario.getIdUsuario(), respuesta.avisoRespuestaLenta());
         return ResponseEntity.status(respuesta.conversacionNueva()
                 ? HttpStatus.CREATED : HttpStatus.OK).body(respuesta);
@@ -82,7 +81,7 @@ public class ConversacionController {
             @AuthenticationPrincipal UsuarioPrincipal usuario) {
         MensajeEnviadoResponse respuesta = conversacionService.enviar(
                 idConversacion, usuario.getIdUsuario(), request);
-        publicarMensaje(idConversacion, respuesta.mensaje(), usuario.getIdUsuario(),
+        notificador.notificarMensaje(idConversacion, respuesta.mensaje(), usuario.getIdUsuario(),
                 respuesta.avisoRespuestaLenta());
         return respuesta;
     }
@@ -94,23 +93,8 @@ public class ConversacionController {
         LecturaResponse respuesta = conversacionService.marcarComoLeidos(
                 idConversacion, usuario.getIdUsuario());
         if (respuesta.mensajesMarcados() > 0) {
-            messagingTemplate.convertAndSend(
-                    destino(idConversacion),
-                    new EventoConversacionResponse(
-                            "LECTURA", null, usuario.getIdUsuario(), respuesta.fechaLectura(), false));
+            notificador.notificarLectura(idConversacion, usuario.getIdUsuario(), respuesta.fechaLectura());
         }
         return respuesta;
-    }
-
-    void publicarMensaje(Long idConversacion, com.equipo404.arrendamiento.dto.response.MensajeResponse mensaje,
-                         Long idEmisor, boolean avisoRespuestaLenta) {
-        messagingTemplate.convertAndSend(
-                destino(idConversacion),
-                new EventoConversacionResponse(
-                        "MENSAJE", mensaje, idEmisor, mensaje.fechaEnvio(), avisoRespuestaLenta));
-    }
-
-    private String destino(Long idConversacion) {
-        return "/topic/conversaciones/" + idConversacion;
     }
 }

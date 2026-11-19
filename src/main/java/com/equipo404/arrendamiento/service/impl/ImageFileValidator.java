@@ -1,5 +1,6 @@
-package com.equipo404.arrendamiento.service;
+package com.equipo404.arrendamiento.service.impl;
 
+import com.equipo404.arrendamiento.service.ImageValidator;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,11 +14,12 @@ import java.util.Iterator;
 import java.util.Locale;
 
 @Component
-public class ImageFileValidator {
+public class ImageFileValidator implements ImageValidator {
 
     public static final long MAX_IMAGE_SIZE_BYTES = 5L * 1024 * 1024;
     private static final long MAX_IMAGE_PIXELS = 20_000_000L;
 
+    @Override
     public ValidatedImage validate(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Debe seleccionar una imagen.");
@@ -199,8 +201,5 @@ public class ImageFileValidator {
                 case WEBP -> "webp".equals(extension);
             };
         }
-    }
-
-    public record ValidatedImage(byte[] bytes, String contentType, String extension) {
     }
 }

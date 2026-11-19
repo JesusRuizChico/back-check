@@ -114,11 +114,16 @@ public class GlobalExceptionHandler {
                 new ErrorResponse("CONFLICTO", "Los datos entran en conflicto con un registro existente"));
     }
 
-    @ExceptionHandler(FirebaseStorageUnavailableException.class)
-    public ResponseEntity<ErrorResponse> manejarFirebaseStorageNoDisponible(
-            FirebaseStorageUnavailableException exception) {
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(
+    @ExceptionHandler(AlmacenamientoException.class)
+    public ResponseEntity<ErrorResponse> manejarAlmacenamiento(AlmacenamientoException exception) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 new ErrorResponse("ALMACENAMIENTO_NO_DISPONIBLE", exception.getMessage()));
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.support.MissingServletRequestPartException.class)
+    public ResponseEntity<ErrorResponse> manejarArchivoFaltante() {
+        return ResponseEntity.badRequest().body(
+                new ErrorResponse("ARCHIVO_REQUERIDO", "Debe seleccionar un archivo de imagen válido."));
     }
 
     @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)

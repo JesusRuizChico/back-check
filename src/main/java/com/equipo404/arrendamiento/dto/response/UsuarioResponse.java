@@ -9,6 +9,7 @@ public class UsuarioResponse {
     private String correo;
     private String telefono;
     private String fotoPerfil;
+    private String biografia;
     private List<String> rolesActivos;
 
     public UsuarioResponse() {
@@ -20,6 +21,7 @@ public class UsuarioResponse {
             String correo,
             String telefono,
             String fotoPerfil,
+            String biografia,
             List<String> rolesActivos) {
 
         this.id = id;
@@ -27,6 +29,7 @@ public class UsuarioResponse {
         this.correo = correo;
         this.telefono = telefono;
         this.fotoPerfil = fotoPerfil;
+        this.biografia = biografia;
         this.rolesActivos = rolesActivos;
     }
 
@@ -68,6 +71,14 @@ public class UsuarioResponse {
 
     public void setFotoPerfil(String fotoPerfil) {
         this.fotoPerfil = fotoPerfil;
+    }
+
+    public String getBiografia() {
+        return biografia;
+    }
+
+    public void setBiografia(String biografia) {
+        this.biografia = biografia;
     }
 
     public List<String> getRolesActivos() {
