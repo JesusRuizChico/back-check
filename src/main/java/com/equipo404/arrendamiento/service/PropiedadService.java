@@ -85,6 +85,40 @@ public class PropiedadService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public PropiedadResponse editarPropiedad(Long idPropietario, Long idPropiedad, PropiedadRequest request) {
+        Propiedad propiedad = propiedadRepository.findById(idPropiedad)
+                .orElseThrow(() -> new IllegalArgumentException("Propiedad no encontrada"));
+
+        if (!propiedad.getPropietario().getIdUsuario().equals(idPropietario)) {
+            throw new IllegalArgumentException("No tienes permiso para editar esta propiedad");
+        }
+
+        if ("rentada".equals(propiedad.getEstado())) {
+            throw new IllegalArgumentException("No se puede editar una propiedad que ya está rentada");
+        }
+
+        if ("eliminada".equals(propiedad.getEstado())) {
+            throw new IllegalArgumentException("No se puede editar una propiedad eliminada");
+        }
+
+        propiedad.setTitulo(request.getTitulo());
+        propiedad.setDescripcion(request.getDescripcion());
+        propiedad.setPrecioMensual(request.getPrecioMensual());
+        propiedad.setCalle(request.getCalle());
+        propiedad.setNumeroExterior(request.getNumeroExterior());
+        propiedad.setNumeroInterior(request.getNumeroInterior());
+        propiedad.setColonia(request.getColonia());
+        propiedad.setMunicipio(request.getMunicipio());
+        propiedad.setEstadoUbicacion(request.getEstadoUbicacion());
+        propiedad.setCodigoPostal(request.getCodigoPostal());
+        propiedad.setLatitud(request.getLatitud());
+        propiedad.setLongitud(request.getLongitud());
+
+        Propiedad actualizada = propiedadRepository.save(propiedad);
+        return mapToResponse(actualizada);
+    }
+
     private PropiedadResponse mapToResponse(Propiedad propiedad) {
         PropiedadResponse response = new PropiedadResponse();
         response.setIdPropiedad(propiedad.getIdPropiedad());

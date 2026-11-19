@@ -39,8 +39,19 @@ public class PropiedadController {
     @PreAuthorize("hasAuthority('ROLE_ARRENDADOR')")
     public ResponseEntity<List<PropiedadResponse>> obtenerMisPropiedades(
             @AuthenticationPrincipal UsuarioPrincipal principal) {
-        
+
         List<PropiedadResponse> propiedades = propiedadService.obtenerMisPropiedades(principal.getIdUsuario());
         return ResponseEntity.ok(propiedades);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ARRENDADOR')")
+    public ResponseEntity<PropiedadResponse> editarPropiedad(
+            @AuthenticationPrincipal UsuarioPrincipal principal,
+            @PathVariable Long id,
+            @Valid @RequestBody PropiedadRequest request) {
+
+        PropiedadResponse response = propiedadService.editarPropiedad(principal.getIdUsuario(), id, request);
+        return ResponseEntity.ok(response);
     }
 }
