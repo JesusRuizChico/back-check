@@ -2,6 +2,7 @@ package com.equipo404.arrendamiento.security;
 
 import com.equipo404.arrendamiento.config.AlmacenamientoProperties;
 import com.equipo404.arrendamiento.config.CorsProperties;
+import com.equipo404.arrendamiento.service.StoredImageReader;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
@@ -102,7 +103,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/registro", "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/csrf", "/actuator/health").permitAll()
-                        .requestMatchers(HttpMethod.GET, imagenesPublicas).permitAll()
+                        .requestMatchers(HttpMethod.GET, imagenesPublicas, StoredImageReader.RUTA_PUBLICA + "/*/*")
+                        .permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session

@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * Ubicación local de las imágenes subidas y la ruta HTTP con la que se publican.
  */
 @ConfigurationProperties(prefix = "habitacheck.almacenamiento")
-public record AlmacenamientoProperties(String directorio, String rutaPublica) {
+public record AlmacenamientoProperties(String directorio, String rutaPublica, String bucket) {
 
     public AlmacenamientoProperties {
         directorio = (directorio == null || directorio.isBlank()) ? "uploads" : directorio;
