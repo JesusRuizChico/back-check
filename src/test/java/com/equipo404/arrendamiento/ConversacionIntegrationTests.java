@@ -192,6 +192,52 @@ class ConversacionIntegrationTests {
     }
 
     @Test
+    void soloElEmisorEliminaSuMensajeYElHistorialLoMarcaComoEliminado() throws Exception {
+        long idArrendador = crearUsuario("arrendador");
+        long idArrendatario = crearUsuario("arrendatario");
+        long idAjeno = crearUsuario("arrendatario");
+        long idPropiedad = crearPropiedad(idArrendador, "Casa para eliminar mensajes");
+
+        Cliente arrendatario = iniciarSesion(idArrendatario);
+        Cliente arrendador = iniciarSesion(idArrendador);
+        Cliente ajeno = iniciarSesion(idAjeno);
+
+        var inicio = arrendatario.enviar("POST",
+                "/api/conversaciones/propiedad/" + idPropiedad + "/mensajes",
+                Map.of("contenido", "Mensaje que se va a eliminar"), true);
+        assertEquals(201, inicio.statusCode(), inicio.body());
+        JsonNode inicioJson = mapper.readTree(inicio.body());
+        long idConversacion = inicioJson.get("idConversacion").asLong();
+        long idMensaje = inicioJson.get("mensajeInicial").get("idMensaje").asLong();
+        conversacionesCreadas.add(idConversacion);
+        String ruta = "/api/conversaciones/" + idConversacion + "/mensajes/" + idMensaje;
+
+        var ajenoIntento = ajeno.enviar("DELETE", ruta, null, true);
+        assertEquals(404, ajenoIntento.statusCode(), ajenoIntento.body());
+
+        var receptorIntento = arrendador.enviar("DELETE", ruta, null, true);
+        assertEquals(403, receptorIntento.statusCode(), receptorIntento.body());
+
+        var inexistente = arrendatario.enviar("DELETE",
+                "/api/conversaciones/" + idConversacion + "/mensajes/999999999", null, true);
+        assertEquals(404, inexistente.statusCode(), inexistente.body());
+
+        var eliminado = arrendatario.enviar("DELETE", ruta, null, true);
+        assertEquals(200, eliminado.statusCode(), eliminado.body());
+        JsonNode eliminadoJson = mapper.readTree(eliminado.body());
+        assertTrue(eliminadoJson.get("eliminado").asBoolean());
+        assertEquals("", eliminadoJson.get("contenido").asText());
+
+        var historial = arrendador.enviar("GET",
+                "/api/conversaciones/" + idConversacion + "/mensajes", null, false);
+        assertEquals(200, historial.statusCode(), historial.body());
+        JsonNode mensajes = mapper.readTree(historial.body()).get("mensajes");
+        assertEquals(1, mensajes.size());
+        assertTrue(mensajes.get(0).get("eliminado").asBoolean());
+        assertEquals("", mensajes.get(0).get("contenido").asText());
+    }
+
+    @Test
     void catalogoMuestraPropiedadesDisponiblesYNoIncluyeLasPausadas() throws Exception {
         long idArrendador = crearUsuario("arrendador");
         long idArrendatario = crearUsuario("arrendatario");
