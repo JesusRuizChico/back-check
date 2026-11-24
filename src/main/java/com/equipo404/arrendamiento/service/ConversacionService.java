@@ -6,6 +6,7 @@ import com.equipo404.arrendamiento.dto.response.InicioConversacionResponse;
 import com.equipo404.arrendamiento.dto.response.LecturaResponse;
 import com.equipo404.arrendamiento.dto.response.MensajeEnviadoResponse;
 import com.equipo404.arrendamiento.dto.response.MensajePaginaResponse;
+import com.equipo404.arrendamiento.dto.response.MensajeResponse;
 import com.equipo404.arrendamiento.dto.response.ResumenConversacionResponse;
 import java.util.List;
 
@@ -23,4 +24,7 @@ public interface ConversacionService {
     MensajeEnviadoResponse enviar(Long idConversacion, Long idUsuarioEmisor, EnviarMensajeRequest request);
 
     LecturaResponse marcarComoLeidos(Long idConversacion, Long idUsuario);
+
+    /** Elimina (logicamente) un mensaje propio de la conversacion. */
+    MensajeResponse eliminarMensaje(Long idConversacion, Long idMensaje, Long idUsuario);
 }

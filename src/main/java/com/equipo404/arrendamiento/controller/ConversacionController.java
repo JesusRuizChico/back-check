@@ -6,6 +6,7 @@ import com.equipo404.arrendamiento.dto.response.InicioConversacionResponse;
 import com.equipo404.arrendamiento.dto.response.LecturaResponse;
 import com.equipo404.arrendamiento.dto.response.MensajeEnviadoResponse;
 import com.equipo404.arrendamiento.dto.response.MensajePaginaResponse;
+import com.equipo404.arrendamiento.dto.response.MensajeResponse;
 import com.equipo404.arrendamiento.dto.response.ResumenConversacionResponse;
 import com.equipo404.arrendamiento.security.UsuarioPrincipal;
 import com.equipo404.arrendamiento.service.ConversacionService;
@@ -15,6 +16,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -84,6 +86,14 @@ public class ConversacionController {
         notificador.notificarMensaje(idConversacion, respuesta.mensaje(), usuario.getIdUsuario(),
                 respuesta.avisoRespuestaLenta());
         return respuesta;
+    }
+
+    @DeleteMapping("/{idConversacion}/mensajes/{idMensaje}")
+    public MensajeResponse eliminarMensaje(
+            @PathVariable Long idConversacion,
+            @PathVariable Long idMensaje,
+            @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return conversacionService.eliminarMensaje(idConversacion, idMensaje, usuario.getIdUsuario());
     }
 
     @PutMapping("/{idConversacion}/lectura")
