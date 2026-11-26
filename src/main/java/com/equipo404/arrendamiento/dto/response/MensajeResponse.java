@@ -8,5 +8,6 @@ public record MensajeResponse(
         String nombreEmisor,
         String contenido,
         OffsetDateTime fechaEnvio,
-        OffsetDateTime fechaLectura) {
+        OffsetDateTime fechaLectura,
+        boolean eliminado) {
 }

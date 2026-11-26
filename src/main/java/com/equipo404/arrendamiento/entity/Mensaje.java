@@ -40,6 +40,9 @@ public class Mensaje {
     @Column(name = "fecha_lectura")
     private OffsetDateTime fechaLectura;
 
+    @Column(name = "fecha_eliminacion")
+    private OffsetDateTime fechaEliminacion;
+
     protected Mensaje() {
     }
 
@@ -62,4 +65,16 @@ public class Mensaje {
     public String getContenido() { return contenido; }
     public OffsetDateTime getFechaEnvio() { return fechaEnvio; }
     public OffsetDateTime getFechaLectura() { return fechaLectura; }
+    public OffsetDateTime getFechaEliminacion() { return fechaEliminacion; }
+
+    public boolean estaEliminado() {
+        return fechaEliminacion != null;
+    }
+
+    /** Marca el mensaje como eliminado; si ya lo estaba conserva la fecha original. */
+    public void eliminar(OffsetDateTime fecha) {
+        if (fechaEliminacion == null) {
+            fechaEliminacion = fecha;
+        }
+    }
 }

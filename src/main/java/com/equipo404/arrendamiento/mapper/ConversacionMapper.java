@@ -20,8 +20,9 @@ public final class ConversacionMapper {
                 mensaje.getIdMensaje(),
                 emisor.getIdUsuario(),
                 emisor.getNombre(),
-                mensaje.getContenido(),
+                mensaje.estaEliminado() ? "" : mensaje.getContenido(),
                 mensaje.getFechaEnvio(),
-                mensaje.getFechaLectura());
+                mensaje.getFechaLectura(),
+                mensaje.estaEliminado());
     }
 }

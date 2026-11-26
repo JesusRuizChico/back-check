@@ -186,6 +186,21 @@ public class ConversacionServiceImpl implements ConversacionService, AccesoConve
         return new LecturaResponse(marcados, ahora);
     }
 
+    @Transactional
+    @Override
+    public MensajeResponse eliminarMensaje(Long idConversacion, Long idMensaje, Long idUsuario) {
+        obtenerConversacionParticipante(idConversacion, idUsuario);
+        Mensaje mensaje = mensajeRepository.findById(idMensaje)
+                .filter(m -> m.getConversacion().getIdConversacion().equals(idConversacion))
+                .orElseThrow(() -> new RecursoNoEncontradoException("El mensaje no existe."));
+        if (!mensaje.getEmisor().getIdUsuario().equals(idUsuario)) {
+            throw new ChatAccesoDenegadoException("Solo puedes eliminar tus propios mensajes.");
+        }
+        mensaje.eliminar(OffsetDateTime.now(ZoneOffset.UTC));
+        mensajeRepository.saveAndFlush(mensaje);
+        return ConversacionMapper.toMensaje(mensaje);
+    }
+
     @Transactional(readOnly = true)
     @Override
     public void validarParticipante(Long idConversacion, Long idUsuario) {
